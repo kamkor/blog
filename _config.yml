@@ -9,7 +9,7 @@ name: Kamil Korzekwa
 description: Personal blog, mainly focused on software development
 
 # URL of your avatar or profile pic (you could use your GitHub profile pic)
-avatar: htps://avatars0.githubusercontent.com/u/947144?v=3&u=57892f0b4bda6f4d5c3a1abec1e513d07e7b3005&s=140
+avatar: /images/avatar.jpg
 
 #
 # Flags below are optional
@@ -26,7 +26,7 @@ footer-links:
   linkedin: kamkor
   pinterest:
   rss: # just type anything here for a working RSS icon, make sure you set the "url" above!
-  twitter: jekyllrb
+  twitter: kamkorz
   stackoverflow: # your stackoverflow profile, e.g. "users/50476/bart-kiers"
   youtube: # channel/<your_long_string> or user/<user-name>
 
