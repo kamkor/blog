@@ -287,3 +287,24 @@ footer {
 // ... Otherwise it really bloats up the top of the CSS file and makes it difficult to find the start
 @import "highlights";
 @import "svg-icons";
+
+.isa_info, .isa_success, .isa_warning, .isa_error {
+    margin: 10px 0px;
+    padding:12px;	
+}
+.isa_info {
+    color: #00529B;
+    background-color: #BDE5F8;
+}
+.isa_success {
+    color: #4F8A10;
+    background-color: #DFF2BF;
+}
+.isa_warning {
+    color: #9F6000;
+    background-color: #FEEFB3;
+}
+.isa_error {
+    color: #D8000C;
+    background-color: #FFBABA;
+}
