@@ -112,7 +112,7 @@ Complete source code is available at [github](https://github.com/kamkor/akka-clu
 
 Charts below show average heap usage of consumer nodes during their lifespan. Zero memory usage represents a node that crashed with Out Of Memory error. C1 and C2 can process max. 4 messages per second, C3 max. 2 messages per second and C4 max. 1 message per second.
 
-First, I have run the application with the round robin routing logic. As expected, all consumer nodes have quickly crashed with Out Of Memory errors. C4 has crashed first, after 160 seconds. It was followed by C3 100 seconds later. C3 and C4 have crashed last, surviving roughly the same amount of time, both around 500 seconds. 
+First, I have run the application with the round robin routing logic. As expected, all consumer nodes have quickly crashed with Out Of Memory errors. C4 has crashed first, after 160 seconds. It was followed by C3 100 seconds later. C1 and C2 have crashed last, surviving roughly the same amount of time, both around 500 seconds. 
 
 ![round robin chart]({{ site.baseurl }}/images/Akka-Cluster-Load-Balancing/round_robin_chart.png)
 
