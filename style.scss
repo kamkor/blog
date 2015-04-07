@@ -5,6 +5,7 @@
 // IMPORTS
 //
 
+@import url(http://fonts.googleapis.com/css?family=Open+Sans:400,700);
 @import "reset";
 @import "variables";
 // Syntax highlighting @import is at the bottom of this file
@@ -18,8 +19,10 @@ html {
 }
 
 body {
-    background: $white;
-  font: 18px/1.4 $helvetica;
+  background: $white;
+  font-family: $openSans;
+  line-height: 1.6em;
+  font-size: 17px;    
   color: $darkGray;
 }
 
@@ -31,10 +34,9 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: $helveticaNeue;
+  font-family: $openSans;
   color: $darkerGray;
   font-weight: bold;
-
   line-height: 1.7;
   margin: 1em 0 15px;
   padding: 0;
@@ -194,7 +196,7 @@ img {
   margin: 0;
   color: $darkGray;
   cursor: pointer;
-  font-family: $helveticaNeue;
+  font-family: $openSans;
   font-weight: 300;
   font-size: 28px;
   letter-spacing: 1px;
@@ -213,7 +215,7 @@ img {
 nav {
   float: right;
   margin-top: 23px; // @TODO: Vertically middle align
-  font-family: $helveticaNeue;
+  font-family: $openSans;
   font-size: 18px;
 
   @include mobile {
@@ -288,24 +290,24 @@ footer {
 /*********************/
 
 .isa_info, .isa_success, .isa_warning, .isa_error {
-    margin: 10px 0px;
-    padding:12px;   
+  margin: 10px 0px;
+  padding:12px;   
 }
 .isa_info {
-    color: #00529B;
-    background-color: #BDE5F8;
+  color: #00529B;
+  background-color: #BDE5F8;
 }
 .isa_success {
-    color: #4F8A10;
-    background-color: #DFF2BF;
+  color: #4F8A10;
+  background-color: #DFF2BF;
 }
 .isa_warning {
-    color: #9F6000;
-    background-color: #FEEFB3;
+  color: #9F6000;
+  background-color: #FEEFB3;
 }
 .isa_error {
-    color: #D8000C;
-    background-color: #FFBABA;
+  color: #D8000C;
+  background-color: #FFBABA;
 }
 
 /*********************/
@@ -313,15 +315,15 @@ footer {
 /*********************/
 
 table {
-    max-width: 100%;
-    width: 100%;
-    margin-bottom: 20px;
-    background-color: #fff;
+  max-width: 100%;
+  width: 100%;
+  margin-bottom: 20px;
+  background-color: #fff;
 }
 
 th {
-    text-align: left;
-    font-weight: bold;
+  text-align: left;
+  font-weight: bold;
 }
 
 table > thead > tr > th,
@@ -330,15 +332,15 @@ table > tfoot > tr > th,
 table > thead > tr > td,
 table > tbody > tr > td,
 table > tfoot > tr > td {
-    padding: 8px;
-    line-height: 1.428571429;
-    vertical-align: top;
-    border-top: 1px solid #ddd;
+  padding: 8px;
+  line-height: 1.428571429;
+  vertical-align: top;
+  border-top: 1px solid #ddd;
 }
 
 table > thead > tr > th {
-    vertical-align: bottom;
-    border-bottom: 2px solid #ddd;
+  vertical-align: bottom;
+  border-bottom: 2px solid #ddd;
 }
 
 table > caption + thead > tr:first-child > th,
@@ -347,11 +349,11 @@ table > thead:first-child > tr:first-child > th,
 table > caption + thead > tr:first-child > td,
 table > colgroup + thead > tr:first-child > td,
 table > thead:first-child > tr:first-child > td {
-    border-top: 0;
+  border-top: 0;
 }
 
 table > tbody + tbody {
-    border-top: 2px solid #ddd;
+  border-top: 2px solid #ddd;
 }
 
 // Settled on moving the import of syntax highlighting to the bottom of the CSS
