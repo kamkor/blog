@@ -166,33 +166,33 @@ This section is very similar to the previous one because contravariance is simpl
 
 ![diagram]({{ site.baseurl }}/images/Covariance-And-Contravariance-In-Scala/items_model.png)
 
-Imagine that you have to buy a garbage can for plastic items. Contravariance means that you can buy garbage can for item, because item is the super type of plastic item. In Scala, this can be expressed as follows:
+Imagine that you are putting all kinds of trash into single garbage can. However, new law has been just introduced which states that trash must be segregated into different garbage cans - one for plastic items, one for paper items etc. So in the case of garbage can for plastic items, you can simply use garbage can for items, because item is the super type of plastic item. In Scala, this can be expressed as follows:
 
 {% highlight scala %}
 class GarbageCan[-A] {
   // .. don't worry about implementation yet
 }
 
-def install(plasticItemsGC: GarbageCan[PlasticItem]): Unit = {
-  // Installs garbage can for PlasticItem trash
+def setGarbageCanForPlastic(gc: GarbageCan[PlasticItem]): Unit = {
+  // sets garbage can for PlasticItem trash
 }
 {% endhighlight %}
 
-`install` method can accept a `GarbageCan` of type `PlasticItem` or supertype of `PlasticItem` (`Item`). This is possible because type parameter A is prefixed with a -. It indicates that subtyping is contravariant in that parameter. Alternatively, it can be said that class `GarbageCan` is contravariant in its type parameter `A`. Next code snippet shows contravariant subtyping because `Item` is the supertype of `PlasticItem`.
+`setGarbageCanForPlastic` method can accept a `GarbageCan` of type `PlasticItem` or super type of `PlasticItem` (`Item`). This is possible because type parameter A is prefixed with a -. It indicates that subtyping is contravariant in that parameter. Alternatively, it can be said that class `GarbageCan` is contravariant in its type parameter `A`. Next code snippet shows contravariant subtyping because `Item` is the super type of `PlasticItem`.
 
 {% highlight scala %}
 // contravariant subtyping
-install(new GarbageCan[Item])
+setGarbageCanForPlastic(new GarbageCan[Item])
 
 // invariant
-install(new GarbageCan[PlasticItem])
+setGarbageCanForPlastic(new GarbageCan[PlasticItem])
 {% endhighlight %}
 
 However, a `GarbageCan` of type `PlasticBottle` can't be passed to install method, because `PlasticBottle` is the subtype of `PlasticItem`. [That would be covariant subtyping](#covariance). 
 
 {% highlight scala %}
 // Compile error ! covariant subtyping
-install(new GarbageCan[PlasticBottle])
+setGarbageCanForPlastic(new GarbageCan[PlasticBottle])
 {% endhighlight %}
 
 To sum up:
@@ -205,7 +205,7 @@ VendingMachine[B] <: VendingMachine[A]
 
 If `A` is a subtype of `B` then `VendingMachine[B]` should be a subtype of `VendingMachine[A]`. This property is called contravariant subtyping.
 
-Contravariant type parameter is most commonly used as method argument type. Just like with the covariance, Scala compiler prevents from the use of contravariant type parameter in positions that could lead to potential errors.
+Contravariant type parameter is most commonly used as method argument type, so naturally contravariance is most commonly used in consumers. Just like with the covariance, Scala compiler prevents from the use of contravariant type parameter in positions that could lead to potential errors.
 
 As an example, take a look at GarbageCan trait:
 
