@@ -32,7 +32,7 @@ install(new VendingMachine[TonicWater])
 install(new VendingMachine[SoftDrink])
 {% endhighlight %}
 
-However, a `VendingMachine` of type `Drink` can't be passed to install method, because `Drink` is a supertype of `SoftDrink`. That would be contravariant subtyping. Contravariance is explained later in this post.
+However, a `VendingMachine` of type `Drink` can't be passed to install method, because `Drink` is a super type of `SoftDrink`. That would be contravariant subtyping. [Contravariance is explained later in this post](#contravariance).
 
 {% highlight scala %}
 // Compile error ! contravariant subtyping
@@ -66,7 +66,7 @@ c2[0] = 1;
 
 ### <a name="legalcovariantpositions"></a> Legal positions of covariant type parameter ###
 
-In general, covariant type parameter can be used for immutable field type, method return type and also for method argument type if method argument type has a lower bound. Because of those restrictions, covariance is most commonly used in producers and immutable types. Those rules are applied in the example [implementation of the Vending Machine](https://github.com/kamkor/covariance-and-contravariance-examples/blob/master/src/main/scala/kamkor/covariance/vendingmachine/VendingMachine.scala).
+In general, covariant type parameter can be used for immutable field type, method return type and also for method argument type if method argument type has a lower bound. Because of those restrictions, covariance is most commonly used in producers (types that return something) and immutable types. Those rules are applied in the example [implementation of the Vending Machine](https://github.com/kamkor/covariance-and-contravariance-examples/blob/master/src/main/scala/kamkor/covariance/vendingmachine/VendingMachine.scala). Code snippet below shows `VendingMachine` trait.
 
 {% highlight scala %}
 /** VendingMachine that is covariant in its type parameter. */
@@ -112,7 +112,7 @@ class NormalBullet extends Bullet
 class ExplosiveBullet extends Bullet
 {% endhighlight %}
 
-Bullets are installed in the ammo magazine. Notice that class `AmmoMagazine` is covariant in its type parameter. It also has mutable field `bullets` which compiles because of object private scope. Every time `nextBullet` is invoked, bullets list is modified. Once ammo magazine is out of bullets, it can't refilled, and there's no way of introducing this feature into this class, because [that would lead to potential runtime errors](#covariantuserestrictions).
+Bullets are contained in the the ammo magazine as seen in the next code listing. Notice that class `AmmoMagazine` is covariant in its type parameter. It also has mutable field `bullets` which compiles because of object private scope. Every time `nextBullet` is invoked, bullets list is modified. Once ammo magazine is out of bullets, it can't refilled, and there's no way of introducing this feature into this class because [that would lead to potential runtime errors](#covariantuserestrictions).
 
 {% highlight scala %}
 final class AmmoMagazine[+A <: Bullet](
@@ -120,7 +120,7 @@ final class AmmoMagazine[+A <: Bullet](
 
   def hasBullets: Boolean = !bullets.isEmpty
 
-  def giveNextBullet: Option[A] =
+  def giveNextBullet(): Option[A] =
     bullets match {
       case Nil => {
         None
@@ -143,23 +143,24 @@ final class Gun(private var ammoMag: AmmoMagazine[Bullet]) {
     this.ammoMag = ammoMag  
   }
 
-  def hasAmmo(): Boolean = ammoMag.hasBullets
+  def hasAmmo: Boolean = ammoMag.hasBullets
 
   /** Returns Bullet that was shoot or None if there is ammo left */
-  def shoot(): Option[Bullet] = ammoMag.giveNextBullet
+  def shoot(): Option[Bullet] = ammoMag.giveNextBullet()
 
 }
 {% endhighlight %}
 
 {% highlight scala %}
-// compiles, because of covariant subtyping
 val gun = new Gun(AmmoMagazine.newNormalBulletsMag)
+// compiles, because of covariant subtyping
 gun.reload(AmmoMagazine.newExplosiveBulletsMag)  
 {% endhighlight %}
 
 More details about how legal positions of covariant type parameter are determined can be found in _The fast track_ section of Type Parameterization chapter in [Programming In Scala](http://www.artima.com/pins1ed/type-parameterization.html).
 
 ## Contravariance ##
+<a name="contravariance"></a>
 
 This section is very similar to the previous one because contravariance is simply the opposite of covariance. Example of contravariance section uses model of items presented below:
 
