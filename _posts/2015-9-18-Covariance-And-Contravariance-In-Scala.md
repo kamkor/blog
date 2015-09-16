@@ -82,7 +82,7 @@ trait VendingMachine[+A] {
   def dispenseNext(): VendingMachine[A]
 
   /** Returns a vending machine with added items. */
-  def addAll[B >: A](newItems: List[B]): VendingMachine[B]
+  def addAll[B >: A](newItems: List[B]): VendingMachine[B]  
   
 }
 {% endhighlight %}
@@ -117,7 +117,7 @@ Bullets are contained in the the ammo magazine as seen in the next code listing.
 {% highlight scala %}
 final class AmmoMagazine[+A <: Bullet](
     private[this] var bullets: List[A]) {
-
+	
   def hasBullets: Boolean = !bullets.isEmpty
 
   def giveNextBullet(): Option[A] =
@@ -130,7 +130,7 @@ final class AmmoMagazine[+A <: Bullet](
         Some(t)
       }
     }
-
+	
 }
 {% endhighlight %}
 
@@ -211,18 +211,68 @@ As an example, take a look at GarbageCan trait:
 
 {% highlight scala %}
 trait GarbageCan[-A] {
-
   /** Puts item into this garbage can */
   def put(item: A): Unit
-
 }
 {% endhighlight %}
 
 If you used contravariant type parameter A in illegal postion such as method return type, Scala compiler would have reported an error. 
 
+## Real world use cases ##
+
+Covariance and contravariance is actually quite common in functional style programming. This section shows example use cases from real APIs used by many developers on daily basis.
+
+### Function type (T1) => R ###
+
+One of the most common type used in functional programming style is [function (T1) => R](http://www.scala-lang.org/api/current/#scala.Function1).
+
+{% highlight scala %}
+// a bit simplified source code from Scala API
+trait Function1[-T1, +R] extends AnyRef { 
+  def apply(v1: T1): R
+}
+{% endhighlight %}
+
+In this type both covariance and contravariance is used. `T1` is contravariant type parameter because it is used as `apply` input type and `R` is covariant type parameter because it is used as `apply` return type. Let's take a look how this can be used in practice. First of all, let's define music instruments model:
+
+{% highlight scala %}
+class MusicInstrument {
+  val productionYear: Int
+}
+case class Guitar(val productionYear: Int) extends MusicInstrument   
+case class Piano(val productionYear: Int) extends MusicInstrument
+{% endhighlight %}
+
+Next let's define function that returns true if MusicIntrument is vintage.
+
+{% highlight scala %}
+val isVintage: MusicInstrument => Boolean = _.productionYear < 1980
+{% endhighlight %}
+
+This function can now be used to filter both `List[Piano]` and `List[Guitar]`. If type [Function1](http://www.scala-lang.org/api/current/#scala.Function1)) input type wasn't a contravariant type parameter then you would have to declare two isVintage functions, one for `Piano` and one for `Guitar`. 
+
+{% highlight scala %}
+test("should filter vintage guitars") {
+  // given
+  val guitars: List[Guitar] = List(new Guitar(1966), new Guitar(1988))
+  // when
+  val vintageGuitars: List[Guitar] = guitars.filter(isVintage)
+  // then
+  assert(List(new Guitar(1966)) === vintageGuitars)
+}
+
+test("should filter vintage pianos") {
+  // given
+  val pianos: List[Piano] = List(new Piano(1975), new Piano(1985))
+  // when
+  val vintagePianos: List[Piano] = pianos.filter(isVintage)
+  // then
+  assert(List(new Piano(1975)) === vintagePianos)
+}
+{% endhighlight %}
+
 ## Summary ##
 
-I plan to create a follow up post where I explain the difference between declaration site variance (as seen in Scala) and use site variance (as seen in Java in the form of ? extends and ? super). I also would like to dive deeper into real world uses of covariance and contravariance - it really is very common nowadays, especially when writing functional style code. 
 
 ## References ##
 
