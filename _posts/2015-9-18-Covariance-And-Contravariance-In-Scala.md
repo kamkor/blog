@@ -51,18 +51,24 @@ If `A` is a subtype of `B` then `VendingMachine[A]` should be a subtype of `Vend
 
 ### <a name="covariantuserestrictions"></a> Use restrictions of covariant type parameter
 
-When a type parameter is declared as covariant, the number of places where it can be safely used is reduced (method argument type, field type etc.). Thankfully, Scala compiler prevents from the use of covariant type parameter in positions that could lead to potential errors. To understand why this is important, let's take a look at example from Java. Arrays in Java are covariant which means that this line compiles `Object[] arr = new String[3];` because `String` is a subtype of `Object`. This leads to potential runtime errors:
+When a type parameter is declared as covariant, the number of places where it can be safely used is reduced (method argument type, field type etc.). Thankfully, Scala compiler prevents from the use of covariant type parameter in positions that could lead to potential errors. To understand why this is important, let's take a look at example from Java. Arrays in Java are covariant which means that code below compiles because `String` is a subtype of `Object`.
 
 {% highlight java %}
-String[] c1 = { "abc" };
-Object[] c2 = c1;
-// OOPS! Line below throws the runtime exception: ArrayStoreException.
-// Reason is, that c2 is actually an instance of Array of Strings, and
-// we try to update it with an Integer object.
-c2[0] = 1;
+Object[] arr = new String[3];
 {% endhighlight %}
 
-[Scala fixes this by making its Arrays invariant](http://www.scala-lang.org/api/current/#scala.Array). Scala Array type parameter doesn't have covariance annotation (+ prefix), because if it had, the method `def update(i: Int, x: T): Unit` could lead to potential runtime errors. And if it actually had a + prefix, Scala compiler would have reported a compile error for `def update(i: Int, x: T): Unit` method declaration. So don't be afraid of using covariance because Scala compiler keeps you safe.
+This leads to potential runtime errors.
+
+{% highlight java %}
+String[] strings = { "abc" };
+Object[] objects = strings;
+// OOPS! Line below throws the runtime exception: ArrayStoreException.
+// Reason is, that objects is actually an instance of Array of Strings, and
+// we try to update it with an Integer object.
+objects[0] = 1;
+{% endhighlight %}
+
+[Scala fixes this by making its Arrays invariant](http://www.scala-lang.org/api/current/#scala.Array). Scala Array type parameter doesn't have covariance annotation (+ prefix), if it had, the method `def update(i: Int, x: T): Unit` could lead to potential runtime errors. And if it actually did have a + prefix, Scala compiler would have reported a compile error for `def update(i: Int, x: T): Unit` method declaration. So don't be afraid of using covariance because Scala compiler keeps you safe.
 
 ### <a name="legalcovariantpositions"></a> Legal positions of covariant type parameter ###
 
@@ -96,7 +102,7 @@ val softDrinksVM: VendingMachine[SoftDrink] =
                     colasVM.addAll(List(new TonicWater))
 {% endhighlight %}
 
-`SoftDrink` is the common super type of both `TonicWater` and `Cola`, so `addAll` above returns a `VendingMachine` of `SoftDrink`.
+`SoftDrink` is the common super type of both `TonicWater` and `Cola`, so `addAll` above returns a `VendingMachine` of type `SoftDrink`.
 
 #### Covariant type parameter as mutable field type
 
@@ -112,7 +118,7 @@ class NormalBullet extends Bullet
 class ExplosiveBullet extends Bullet
 {% endhighlight %}
 
-Bullets are contained in the the ammo magazine as seen in the next code listing. Notice that class `AmmoMagazine` is covariant in its type parameter. It also has mutable field `bullets` which compiles because of object private scope. Every time `nextBullet` is invoked, bullets list is modified. Once ammo magazine is out of bullets, it can't refilled, and there's no way of introducing this feature into this class because [that would lead to potential runtime errors](#covariantuserestrictions).
+Bullets are contained in the the ammo magazine as seen in the next code listing. Notice that class `AmmoMagazine` is covariant in its type parameter. It also has mutable field `bullets` which compiles because of object private scope. Every time `nextBullet` is invoked, bullet from bullets list is removed. Once ammo magazine is out of bullets, it can't refilled and there is no way of introducing this feature into this class because [that would lead to potential runtime errors](#covariantuserestrictions).
 
 {% highlight scala %}
 final class AmmoMagazine[+A <: Bullet](
