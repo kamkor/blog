@@ -10,7 +10,7 @@ First example of the covariance section uses model of drinks presented below:
 
 ![diagram]({{ site.baseurl }}/images/Covariance-And-Contravariance-In-Scala/drinks_model.png)
 
-Imagine that your employer promised a new soft drink vending machine. Covariance means that in its place he can install a cola or tonic water vending machine, because both cola and tonic water are subtypes of soft drink. Let's turn this description into Scala code:
+Imagine that your employer promised a new soft drink vending machine. Covariance means that in its place he can install a cola or tonic water vending machine, because both cola and tonic water are subtypes of soft drink. Let's turn this description into Scala code.
 
 {% highlight scala %}
 class VendingMachine[+A] {
@@ -39,7 +39,7 @@ However, a `VendingMachine` of type `Drink` can't be passed to install method, b
 install(new VendingMachine[Drink])
 {% endhighlight %}
 
-To sum up:
+To sum up.
 
 {% highlight scala %}
 // Covariant subtyping
@@ -72,7 +72,7 @@ objects[0] = 1;
 
 ### <a name="legalcovariantpositions"></a> Legal positions of covariant type parameter ###
 
-In general, covariant type parameter can be used for immutable field type, method return type and also for method argument type if method argument type has a lower bound. Because of those restrictions, covariance is most commonly used in producers (types that return something) and immutable types. Those rules are applied in the example [implementation of the Vending Machine](https://github.com/kamkor/covariance-and-contravariance-examples/blob/master/src/main/scala/kamkor/covariance/vendingmachine/VendingMachine.scala). Code snippet below shows `VendingMachine` trait.
+In general, covariant type parameter can be used for immutable field type, method return type and also for method argument type if method argument type has a lower bound. Because of those restrictions, covariance is most commonly used in producers (types that return something) and immutable types. Those rules are applied in the example [implementation of the `Vending Machine`](https://github.com/kamkor/covariance-and-contravariance-examples/blob/master/src/main/scala/kamkor/covariance/vendingmachine/VendingMachine.scala). Code snippet below shows `VendingMachine` trait. 
 
 {% highlight scala %}
 /** VendingMachine that is covariant in its type parameter. */
@@ -106,11 +106,11 @@ val softDrinksVM: VendingMachine[SoftDrink] =
 
 #### Covariant type parameter as mutable field type
 
-Covariant type parameter can be used for mutable field type only if the field has object private scope (`private[this]`). This is explained in Programming In Scala [Odersky2008]:
+Covariant type parameter can be used for mutable field type only if the field has object private scope (`private[this]`). This is explained in Programming In Scala [Odersky2008].
 
 > Object private members can be accessed only from within the object in which they are defined. It turns out that accesses to variables from the same object in which they are defined do not cause problems with variance. The intuitive explanation is that, in order to construct a case where variance would lead to type errors, you need to have a reference to a containing object that has a statically weaker type than the type the object was defined with. For accesses to object private values, however, this is impossible.
 
-Personally, I can't imagine there being many good use cases for using covariant type parameter for mutable field type. However, I have prepared an example that shows how rule above can be applied in Scala. Imagine that you are creating a sci-fi shooter game with different kinds of bullets:
+Personally, I can't imagine there being many good use cases for using covariant type parameter for mutable field type. However, I have prepared an example that shows how rule above can be applied in Scala. Imagine that you are creating a sci-fi shooter game with different kinds of bullets.
 
 {% highlight scala %}
 trait Bullet
@@ -168,11 +168,11 @@ More details about how legal positions of covariant type parameter are determine
 ## Contravariance ##
 <a name="contravariance"></a>
 
-This section is very similar to the previous one because contravariance is simply the opposite of covariance. Example of contravariance section uses model of items presented below:
+This section is very similar to the previous one because contravariance is simply the opposite of covariance. Example of contravariance section uses model of items presented below.
 
 ![diagram]({{ site.baseurl }}/images/Covariance-And-Contravariance-In-Scala/items_model.png)
 
-Imagine that you are putting all kinds of trash into single garbage can. However, new law has been just introduced which states that trash must be segregated into different garbage cans - one for plastic items, one for paper items etc. So in the case of garbage can for plastic items, you can simply use garbage can for items, because item is the super type of plastic item. In Scala, this can be expressed as follows:
+Long time ago all kinds of trash could be put into single garbage can. Nowadays, trash must be segregated into different garbage cans - one for plastic items, one for paper items and so on. Contravariance means that if you need a garbage can for plastic items, you can simply set in its place a garbage can for items, because item is the super type of plastic item. In Scala, this can be expressed as follows.
 
 {% highlight scala %}
 class GarbageCan[-A] {
@@ -180,7 +180,7 @@ class GarbageCan[-A] {
 }
 
 def setGarbageCanForPlastic(gc: GarbageCan[PlasticItem]): Unit = {
-  // sets garbage can for PlasticItem trash
+  // sets garbage can for PlasticItem items
 }
 {% endhighlight %}
 
@@ -194,14 +194,14 @@ setGarbageCanForPlastic(new GarbageCan[Item])
 setGarbageCanForPlastic(new GarbageCan[PlasticItem])
 {% endhighlight %}
 
-However, a `GarbageCan` of type `PlasticBottle` can't be passed to install method, because `PlasticBottle` is the subtype of `PlasticItem`. [That would be covariant subtyping](#covariance). 
+However, a `GarbageCan` of type `PlasticBottle` can't be passed to `setGarbageCanForPlastic` method, because `PlasticBottle` is the subtype of `PlasticItem`. [That would be covariant subtyping](#covariance). 
 
 {% highlight scala %}
 // Compile error ! covariant subtyping
 setGarbageCanForPlastic(new GarbageCan[PlasticBottle])
 {% endhighlight %}
 
-To sum up:
+To sum up.
 
 {% highlight scala %}
 // Contravariant subtyping
@@ -211,18 +211,27 @@ VendingMachine[B] <: VendingMachine[A]
 
 If `A` is a subtype of `B` then `VendingMachine[B]` should be a subtype of `VendingMachine[A]`. This property is called contravariant subtyping.
 
-Contravariant type parameter is most commonly used as method argument type, so naturally contravariance is most commonly used in consumers. Just like with the covariance, Scala compiler prevents from the use of contravariant type parameter in positions that could lead to potential errors.
+### Use cases for contravariant type parameter ###
 
-As an example, take a look at GarbageCan trait:
+Contravariant type parameter is usually used as method argument type, so naturally contravariance is most commonly used in consumers (types that accept something). Just like with the covariance, Scala compiler prevents from the use of contravariant type parameter in positions that could lead to potential errors. If contravariant type parameter was used in illegal position such as method return type, Scala compiler would have reported an error. 
+
+Typical use of contravariant type parameter is applied in the [example implementation of `GarbageCan`](https://github.com/kamkor/covariance-and-contravariance-examples/blob/master/src/main/scala/kamkor/contravariance/garbagecan/GarbageCan.scala). Code snippet below shows `GarbageCan` trait.
 
 {% highlight scala %}
+/** GarbageCan that is contravariant in its type parameter. */
 trait GarbageCan[-A] {
+
   /** Puts item into this garbage can */
   def put(item: A): Unit
+
+  /** Puts items into this garbage can */
+  def putAll(items: List[A]): Unit
+
+  /** Returns current number of items in the garbage can */
+  val itemsCount: Int
+
 }
 {% endhighlight %}
-
-If you used contravariant type parameter A in illegal postion such as method return type, Scala compiler would have reported an error. 
 
 ## Real world use cases ##
 
@@ -230,7 +239,7 @@ Covariance and contravariance is actually quite common in functional style progr
 
 ### Function type (T1) => R ###
 
-One of the most common type used in functional programming style is [function (T1) => R](http://www.scala-lang.org/api/current/#scala.Function1).
+One of the most common type used in the functional programming style is [function (T1) => R](http://www.scala-lang.org/api/current/#scala.Function1).
 
 {% highlight scala %}
 // a bit simplified source code from Scala API
@@ -239,7 +248,7 @@ trait Function1[-T1, +R] extends AnyRef {
 }
 {% endhighlight %}
 
-In this type both covariance and contravariance is used. `T1` is contravariant type parameter because it is used as `apply` input type and `R` is covariant type parameter because it is used as `apply` return type. Let's take a look how this can be used in practice. First of all, let's define music instruments model:
+In this type both covariance and contravariance is used. `T1` is contravariant type parameter because it is used as `apply` input type and `R` is covariant type parameter because it is used as `apply` return type. Let's take a look how this can be used in practice. First of all, let's define music instruments model.
 
 {% highlight scala %}
 class MusicInstrument {
