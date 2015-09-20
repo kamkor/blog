@@ -239,7 +239,7 @@ Covariance and contravariance is actually quite common in functional style progr
 
 ### Function type (T1) => R ###
 
-One of the most common type used in the functional programming style is [function (T1) => R](http://www.scala-lang.org/api/current/#scala.Function1).
+One of the most common type used in the functional programming style is [function (T1) => R](http://www.scala-lang.org/api/current/#scala.Function1). 
 
 {% highlight scala %}
 // a bit simplified source code from Scala API
@@ -248,7 +248,7 @@ trait Function1[-T1, +R] extends AnyRef {
 }
 {% endhighlight %}
 
-In this type both covariance and contravariance is used. `T1` is contravariant type parameter because it is used as `apply` input type and `R` is covariant type parameter because it is used as `apply` return type. Let's take a look how this can be used in practice. First of all, let's define music instruments model.
+In this type both contravariance and covariance is used. `T1` is contravariant type parameter because it is used as `apply` input type and `R` is covariant type parameter because it is used as `apply` return type. This makes type `Function1` very generic. Let's examine how contravariance in `Function1` helps you achieve more with less code. Below code snippet presents music instruments model.
 
 {% highlight scala %}
 class MusicInstrument {
@@ -258,15 +258,17 @@ case class Guitar(val productionYear: Int) extends MusicInstrument
 case class Piano(val productionYear: Int) extends MusicInstrument
 {% endhighlight %}
 
-Next let's define function that returns true if MusicIntrument is vintage.
+Next code snippet shows a function that returns true if MusicInstrument is vintage.
 
 {% highlight scala %}
-val isVintage: MusicInstrument => Boolean = _.productionYear < 1980
+val isVintage: (MusicInstrument => Boolean) = _.productionYear < 1980
 {% endhighlight %}
 
-This function can now be used to filter both `List[Piano]` and `List[Guitar]`. If type [Function1](http://www.scala-lang.org/api/current/#scala.Function1)) input type wasn't a contravariant type parameter then you would have to declare two isVintage functions, one for `Piano` and one for `Guitar`. 
+This function can be used to [filter](http://www.scala-lang.org/api/current/index.html#scala.collection.immutable.List@filter(p:A=>Boolean):Repr) both `List[Piano]` and `List[Guitar]`. If T1 from function (T1) => R, was not a contravariant type parameter, then two isVintage function would have to be implemented, one for 'Piano' and one for 'Guitar'. 
 
 {% highlight scala %}
+val isVintage: (MusicInstrument => Boolean) = _.productionYear < 1980
+
 test("should filter vintage guitars") {
   // given
   val guitars: List[Guitar] = List(new Guitar(1966), new Guitar(1988))
@@ -286,8 +288,37 @@ test("should filter vintage pianos") {
 }
 {% endhighlight %}
 
+### Immutable container types - Option, Collections ###
+
+### RxScala ###
+
+## Use-site and declaration-site covariance and contravariance ##
+
 ## Summary ##
 
+Covariance and contravariance is something that many take for granted. It is especially relevant now because of the functional style programming that has gained a lot of popularity in the recent years. If covariance and contravariance would be suddenly turned off, a lot of code wouldn't compile any more.
+
+It is important that both library developers and users understand concepts of covariance and contravariance. Covariance and contravariance makes libraries more generic and lets their aware users achieve more functionality with less code. 
+
+From the perspective of library developer it is easiest to remember that covariant type parameter should be most often used as return type of a method and contravariant type parameter as a method argument type. Also there are use restrictions of covariant and contravariant type parameters which are checked by Scala compiler.
+
+From the perspective of library user it is best to remember rules below. First covariant subtyping.
+
+{% highlight scala %}
+// Covariant subtyping (Vending machine metaphore)
+               A  <:                B
+VendingMachine[A] <: VendingMachine[B]
+{% endhighlight %}
+
+And next contravariant subtyping which is the opposite of covariant subtyping.
+
+{% highlight scala %}
+// Contravariant subtyping (Garbage can metaphore)
+               A  <:                B
+VendingMachine[B] <: VendingMachine[A]
+{% endhighlight %}
+
+If you forget rules above, try to remind yourself of vending machine and garbage can metaphors. Last of all, all code examples (and more) are available at [github](https://github.com/kamkor/covariance-and-contravariance-examples).
 
 ## References ##
 
