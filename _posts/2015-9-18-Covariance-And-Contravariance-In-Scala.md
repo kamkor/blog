@@ -290,7 +290,32 @@ test("should filter vintage pianos") {
 
 ### Immutable container types - Option, Collections ###
 
+Scala immutable container types such as [`Option`](http://www.scala-lang.org/api/current/#scala.Option), [`List`](http://www.scala-lang.org/api/current/#scala.collection.immutable.List) are covariant in its type parameter. If this wasn't the case, then in the code snippet below, separate `getPrices` method for each `MusicInstrument` would have to be implemented. However, with the covariance, one method is enough.
+
+{% highlight scala %}
+def getPrices(instruments: List[MusicInstrument]) = {
+  // returns prices of instruments    
+}
+
+val guitars: List[Guitar] = List(new Guitar(1966), new Guitar(1988))  
+// covariant subtyping because Guitar is a subtype of MusicInstrument
+val guitarsPrices = getPrices(guitars)
+{% endhighlight %}
+
 ### RxScala ###
+
+Asynchronous and event-based programs have been gaining a lot of popularity in the recent years. It used to be really challenging to write such programs but with the arrival of [Reactive Extensions](http://reactivex.io/) things have become much easier. Quote below explains what are Reactive Extensions in short [Reactivex.io].
+
+> ReactiveX is a library for composing asynchronous and event-based programs by using observable sequences.
+>
+>It extends the observer pattern to support sequences of data and/or events and adds operators that allow you to compose sequences together declaratively while abstracting away concerns about things like low-level threading, synchronization, thread-safety, concurrent data structures, and non-blocking I/O.
+
+This library has been implemented in many languages, also in Scala in [RxScala](http://reactivex.io/rxscala/) project. Quote . 
+
+This library makes heavy use of covariance and contravariance. 
+
+ a library for composing asynchronous and event-based programs by using observable sequences.
+Asynchronous
 
 ## Use-site and declaration-site covariance and contravariance ##
 
