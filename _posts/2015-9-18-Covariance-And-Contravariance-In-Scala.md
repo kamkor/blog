@@ -63,8 +63,8 @@ This leads to potential runtime errors.
 String[] strings = { "abc" };
 Object[] objects = strings;
 // OOPS! Line below throws the runtime exception: ArrayStoreException.
-// Reason is, that objects is actually an instance of Array of Strings, and
-// we try to update it with an Integer object.
+// Reason is, that objects is actually an instance of 
+// Array of Strings and we try to update it with an Integer object.
 objects[0] = 1;
 {% endhighlight %}
 
@@ -302,6 +302,10 @@ val guitars: List[Guitar] = List(new Guitar(1966), new Guitar(1988))
 val guitarsPrices = getPrices(guitars)
 {% endhighlight %}
 
+### Comparable ###
+
+
+
 ### RxScala ###
 
 Asynchronous and event-based programs have been gaining a lot of popularity in the recent years. It used to be really challenging to write such programs but with the arrival of [Reactive Extensions](http://reactivex.io/) things have become much easier. Quote below explains what are Reactive Extensions in short [Reactivex.io].
@@ -310,22 +314,38 @@ Asynchronous and event-based programs have been gaining a lot of popularity in t
 >
 >It extends the observer pattern to support sequences of data and/or events and adds operators that allow you to compose sequences together declaratively while abstracting away concerns about things like low-level threading, synchronization, thread-safety, concurrent data structures, and non-blocking I/O.
 
-This library has been implemented in many languages, also in Scala in [RxScala](http://reactivex.io/rxscala/) project. Quote . 
+Reactive extensions have been implemented in many languages, including Scala in project [RxScala](http://reactivex.io/rxscala/). What does it have to do with this post? This library makes heavy use of covariance and contravariance. Take a look trait [`Observable`](http://reactivex.io/rxscala/scaladoc/index.html#rx.lang.scala.Observable) and [`Observer`](http://reactivex.io/rxscala/scaladoc/index.html#rx.lang.scala.Observer) which are two most important types from this library.
 
-This library makes heavy use of covariance and contravariance. 
+{% highlight scala %}
+trait Observable[+T] {  
+  def subscribe(observer: Observer[T]): Subscription  
+  def map[R](func: T => R): Observable[R]  
+  def flatMap[R](f: T => Observable[R]): Observable[R]  
+  def filter(predicate: T => Boolean)  
+  // much more  
+}
+{% endhighlight %}
 
- a library for composing asynchronous and event-based programs by using observable sequences.
-Asynchronous
+
+{% highlight scala %}
+trait Observer[-T] {
+  def onNext(value: T): Unit  
+  def onError(error: Throwable): Unit
+  def onCompleted(): Unit
+}
+{% endhighlight %}
+
+`Observable` is the producing type, so it is covariant in its type parameter, while the `Observer` is the consuming type so it is contravariant in its type parameter. More detailed explanation of RxScala is out of scope here, but I really believe covariance and contravariance makes RxScala much more flexible than it would be without it.
 
 ## Use-site and declaration-site covariance and contravariance ##
 
 ## Summary ##
 
-Covariance and contravariance is something that many take for granted. It is especially relevant now because of the functional style programming that has gained a lot of popularity in the recent years. If covariance and contravariance would be suddenly turned off, a lot of code wouldn't compile any more.
+Covariance and contravariance are something that many take for granted. It is especially relevant now because of the functional style programming that has gained a lot of popularity in the recent years. If covariance and contravariance would be suddenly turned off, a lot of code wouldn't compile any more.
 
 It is important that both library developers and users understand concepts of covariance and contravariance. Covariance and contravariance makes libraries more generic and lets their aware users achieve more functionality with less code. 
 
-From the perspective of library developer it is easiest to remember that covariant type parameter should be most often used as return type of a method and contravariant type parameter as a method argument type. Also there are use restrictions of covariant and contravariant type parameters which are checked by Scala compiler.
+From the perspective of library developer it is easiest to remember that covariant type parameter should be most often used as output type and contravariant type parameter as input type. If you want to use type parameter as both input and output type, then it should be invariant.
 
 From the perspective of library user it is best to remember rules below. First covariant subtyping.
 
@@ -354,6 +374,8 @@ If you forget rules above, try to remind yourself of vending machine and garbage
 [Odersky2008] Odersky, M., Parrow, J., Walker, D.: _Programming in Scala: A comprehensive Step-by-step Guide_. Artima Incorporation, 2008.<br/><<http://www.artima.com/pins1ed/type-parameterization.html>>
 
 [Bloch2008] Bloch, Joshua. _Effective Java: Second Edition_. Addison-Wesley, Boston, 2008
+
+[Reactivex.io] http://reactivex.io/intro.html
 
 ## Terms table ##
 
