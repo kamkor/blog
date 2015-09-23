@@ -302,10 +302,6 @@ val guitars: List[Guitar] = List(new Guitar(1966), new Guitar(1988))
 val guitarsPrices = getPrices(guitars)
 {% endhighlight %}
 
-### Comparable ###
-
-
-
 ### RxScala ###
 
 Asynchronous and event-based programs have been gaining a lot of popularity in the recent years. It used to be really challenging to write such programs but with the arrival of [Reactive Extensions](http://reactivex.io/) things have become much easier. Quote below explains what are Reactive Extensions in short [Reactivex.io].
@@ -337,7 +333,77 @@ trait Observer[-T] {
 
 `Observable` is the producing type, so it is covariant in its type parameter, while the `Observer` is the consuming type so it is contravariant in its type parameter. More detailed explanation of RxScala is out of scope here, but I really believe covariance and contravariance makes RxScala much more flexible than it would be without it.
 
-## Use-site and declaration-site covariance and contravariance ##
+## Use-site and declaration-site variance ##
+
+So far this post has shown declaration-site variance because variance was defined during the declaration of the type by its creator, like below:
+
+{% highlight scala %}
+class VendingMachine[+A]
+{% endhighlight %}
+
+There is also use-site variance in which variance is defined by the user of the type. For example, see `VendingMachine` below which is invariant in its type parameter `A`.
+
+{% highlight scala %}
+class VendingMachine[A] {
+  // Vending Machine is invariant in type parameter A, so
+  // you can use that type parameter however you want.
+}
+{% endhighlight %}
+
+If the user of the `VendingMachine` would like to use covariant subtyping then he would have to define covariance himself, for example like in the code below.
+
+{% highlight scala %}
+/**
+ * Use-site covariance using bounds. Accepts a Vending Machine
+ * of type SoftDrink or subtypes of SoftDrink (Cola or TonicWater).
+ */
+def install(softDrinkVM: VendingMachine[_ <: SoftDrink]): Unit = {
+  // Installs soft drink vending machine
+}
+{% endhighlight %}
+
+`<:` is like `extends` from Java. It looks pretty ugly doesn't it? If `install` method was defined as `install(softDrinkVM: VendingMachine[SoftDrink])` then code above wouldn't compile because it would require the types to match exactly. That is, only `install(new VendingMachine[SoftDrink])` would have worked.
+
+So besides this being pretty ugly, there is also another problem. Take a look at class `Box` defined in the next code listing. `Box` uses type parameter `A` as both output and input, so it can't be declared by the creator of the class as neither covariant nor contravariant. 
+
+{% highlight scala %}
+class Box[A]() {
+  private var _thing: A = _
+
+  def retrieve: A = _thing
+
+   // explicit setter for the sake of example    
+   def put(thing: A) = this._thing = thing
+}
+{% endhighlight %}
+
+Imagine user wants to both put and retrieve items from the Box.
+
+{% highlight scala %}
+val box: Box[SoftDrink] = new Box()
+box.put(new Cola)
+val thing: SoftDrink = box.retrieve
+{% endhighlight %}
+
+If the user would like covariant subtyping to work with the class `Box` then he would have to add variance himself. However, this will cause method `put` to be no longer usable, because compiler will not be able to figure out the correct type for the parameter of `put` method.
+
+{% highlight scala %}
+val box: Box[_ <: SoftDrink] = new Box()
+// type mismatch; found : Cola required: _$4
+// box.put(new Cola)
+val thing: SoftDrink = box.retrieve
+{% endhighlight %}
+
+Similar problem exists when user wants to use contravariant subtyping.  
+
+{% highlight scala %}
+val box: Box[_ >: SoftDrink] = new Box()
+box.put(new Cola)
+// type mismatch; found : _$2 required: SoftDrink    
+// val thing: SoftDrink = box.retrieve
+{% endhighlight %}
+
+Covariance and contravariance can be quite tricky to get right so it is best to define them during the declaration of the type. And finally, it also leads to really ugly and hard to read API. Java only has use-site variance and it doesn't make its API look pretty.... tadada
 
 ## Summary ##
 
