@@ -310,28 +310,30 @@ Asynchronous and event-based programs have been gaining a lot of popularity in t
 >
 >It extends the observer pattern to support sequences of data and/or events and adds operators that allow you to compose sequences together declaratively while abstracting away concerns about things like low-level threading, synchronization, thread-safety, concurrent data structures, and non-blocking I/O.
 
-Reactive extensions have been implemented in many languages, including Scala in project [RxScala](http://reactivex.io/rxscala/). What does it have to do with this post? This library makes heavy use of covariance and contravariance. Take a look trait [`Observable`](http://reactivex.io/rxscala/scaladoc/index.html#rx.lang.scala.Observable) and [`Observer`](http://reactivex.io/rxscala/scaladoc/index.html#rx.lang.scala.Observer) which are two most important types from this library.
+Reactive extensions have been implemented in many languages, including Scala in project [RxScala](http://reactivex.io/rxscala/). What does it have to do with this post? This library makes heavy use of covariance and contravariance. Just look at two [`Observable`](http://reactivex.io/rxscala/scaladoc/index.html#rx.lang.scala.Observable) and [`Observer`](http://reactivex.io/rxscala/scaladoc/index.html#rx.lang.scala.Observer) which are two most important types from this library. Those types are examined next and a new advanced concept of flipped classification is introduced.
+
+#### Flipped classification ####
 
 {% highlight scala %}
 trait Observable[+T] {  
   def subscribe(observer: Observer[T]): Subscription  
   def map[R](func: T => R): Observable[R]  
-  def flatMap[R](f: T => Observable[R]): Observable[R]  
-  def filter(predicate: T => Boolean)  
   // much more  
 }
 {% endhighlight %}
 
+`Observable` is a type that produces values of type `T`, so it is covariant in type parameter `T`. However, if you look at method `subscribe` you might think that it uses type `T` in illegal position. After all, it was explained before that if type parameter is declared as covariant then it can be used as method argument type if it has a lower bound (`[B >: T]`). So the question is, why `subscribe` above compiles? The answer is flipped classification. Method `subscribe` accepts parametrized type `Observer` as an argument. The trick is that `Observer` is contravariant in its type parameter `T`.
 
 {% highlight scala %}
 trait Observer[-T] {
   def onNext(value: T): Unit  
-  def onError(error: Throwable): Unit
-  def onCompleted(): Unit
+  // .. more methods
 }
 {% endhighlight %}
 
-`Observable` is the producing type, so it is covariant in its type parameter, while the `Observer` is the consuming type so it is contravariant in its type parameter. More detailed explanation of RxScala is out of scope here, but I really believe covariance and contravariance makes RxScala much more flexible than it would be without it.
+Flipped classification also applies to `map` method of `Observable`. Method `map` accepts as an argument type `(T => R)`, that is `Function1[-T, +R]`. `Function1` is contravariant in type parameter T so flipped classification is also applied by the Scala compiler. 
+
+Flipped classification is explained in more detail in in _The fast track_ section of Type Parameterization chapter in [Programming In Scala](http://www.artima.com/pins1ed/type-parameterization.html). 
 
 ## Use-site and declaration-site variance ##
 
