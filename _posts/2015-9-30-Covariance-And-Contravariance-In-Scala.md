@@ -6,11 +6,11 @@ This post explains concepts of covariance and contravariance. It focuses on real
 
 ## Covariance
 <a name="covariance"></a>
-First example of the covariance section uses model of drinks presented below:
+First example of the covariance section uses model of drinks presented below.
 
 ![diagram]({{ site.baseurl }}/images/Covariance-And-Contravariance-In-Scala/drinks_model.png)
 
-Imagine that your employer promised a new soft drink vending machine. Covariance means that in its place he can install a cola or tonic water vending machine, because both cola and tonic water are subtypes of soft drink. Let's turn this description into Scala code.
+Imagine that your employer promised a new soft drink vending machine. Covariance means that in its place he can install a cola or tonic water vending machine because both cola and tonic water are subtypes of soft drink. Let's turn this description into Scala code.
 
 {% highlight scala %}
 class VendingMachine[+A] {
@@ -22,7 +22,7 @@ def install(softDrinkVM: VendingMachine[SoftDrink]): Unit = {
 }
 {% endhighlight %}
 
-`install` method can accept a `VendingMachine` of type `SoftDrink` or subtypes of `SoftDrink` (`Cola` or `TonicWater`). This is possible, because type parameter A is prefixed with a +. It indicates that subtyping is covariant in that parameter. Alternatively, it can be said that class `VendingMachine` is covariant in its type parameter `A`. Next code snippet shows covariant subtyping because `Cola` and `TonicWater` are subtypes of `SoftDrink`.
+`install` method accepts `VendingMachine` of type `SoftDrink` or subtypes of `SoftDrink` (`Cola` or `TonicWater`). This is possible because type parameter A is prefixed with a +. It indicates that subtyping is covariant in that parameter. Alternatively, it can be said that class `VendingMachine` is covariant in its type parameter `A`. Next code snippet shows covariant subtyping because `Cola` and `TonicWater` are subtypes of `SoftDrink`.
 
 {% highlight scala %}
 // covariant subtyping
@@ -32,7 +32,7 @@ install(new VendingMachine[TonicWater])
 install(new VendingMachine[SoftDrink])
 {% endhighlight %}
 
-However, a `VendingMachine` of type `Drink` can't be passed to install method, because `Drink` is a super type of `SoftDrink`. That would be contravariant subtyping. [Contravariance is explained later in this post](#contravariance).
+However, `VendingMachine` of type `Drink` can't be passed to `install` method because `Drink` is a supertype of `SoftDrink`. That would be contravariant subtyping. [Contravariance is explained later in this post](#contravariance).
 
 {% highlight scala %}
 // Compile error ! contravariant subtyping
@@ -51,26 +51,39 @@ If `A` is a subtype of `B` then `VendingMachine[A]` should be a subtype of `Vend
 
 ### <a name="covariantuserestrictions"></a> Use restrictions of covariant type parameter
 
-When a type parameter is declared as covariant, the number of places where it can be safely used is reduced (method argument type, field type etc.). Thankfully, Scala compiler prevents from the use of covariant type parameter in positions that could lead to potential errors. To understand why this is important, let's take a look at example from Java. Arrays in Java are covariant which means that code below compiles because `String` is a subtype of `Object`.
+When type parameter is declared as covariant, the number of positions where it can be safely used is reduced. Thankfully, Scala compiler prevents from the use of covariant type parameter in positions that could lead to potential errors. Next example, this time from Java, shows why this is important. 
+
+Unfortunately, arrays in Java are covariant. This allows code below to compile because `String` is a subtype of `Object`. Therefore, covariant subtyping can be applied.
 
 {% highlight java %}
 Object[] arr = new String[3];
 {% endhighlight %}
 
-This leads to potential runtime errors.
+If `arr` will be modified with value of type other than String then ArrayStoreException will be thrown.
 
 {% highlight java %}
 String[] strings = { "abc" };
 Object[] objects = strings;
-// OOPS! Line below throws the runtime exception: ArrayStoreException.
-// Reason is, that objects is actually an instance of 
-// Array of Strings and we try to update it with an Integer object.
+// OOPS! Line below throws runtime exception: ArrayStoreException.
+// Reason is that objects is actually an instance of 
+// Array of Strings and we try to update it with an Integer.
 objects[0] = 1;
 {% endhighlight %}
 
-[Scala fixes this by making its Arrays invariant](http://www.scala-lang.org/api/current/#scala.Array). Scala Array type parameter doesn't have covariance annotation (+ prefix), if it had, the method `def update(i: Int, x: T): Unit` could lead to potential runtime errors. And if it actually did have a + prefix, Scala compiler would have reported a compile error for `def update(i: Int, x: T): Unit` method declaration. So don't be afraid of using covariance because Scala compiler keeps you safe.
+Scala fixes this problem by making its [Array](http://www.scala-lang.org/api/current/#scala.Array) type invariant.
 
-### <a name="legalcovariantpositions"></a> Legal positions of covariant type parameter ###
+{% highlight scala %}
+// Simplified Array from Scala
+final class Array[T](_length: Int) {
+  // this is equivalent to arr(i) = x
+  def update(i: Int, x: T): Unit = ...
+  // ...
+}
+{% endhighlight %}
+
+Scala Array type parameter doesn't have covariance annotation (+ prefix), if it had, the method `def update(i: Int, x: T): Unit` could lead to potential runtime errors. And if it actually did have a + prefix, Scala compiler would have reported compile error.
+
+### <a name="legalcovariantpositions"></a> Legal positions of covariant type parameter
 
 In general, covariant type parameter can be used for immutable field type, method return type and also for method argument type if method argument type has a lower bound. Because of those restrictions, covariance is most commonly used in producers (types that return something) and immutable types. Those rules are applied in the example [implementation of the `Vending Machine`](https://github.com/kamkor/covariance-and-contravariance-examples/blob/master/src/main/scala/kamkor/covariance/vendingmachine/VendingMachine.scala). Code snippet below shows `VendingMachine` trait. 
 
@@ -93,7 +106,7 @@ trait VendingMachine[+A] {
 }
 {% endhighlight %}
 
-The method `def addAll[B >: A](newItems: List[B]): VendingMachine[B]` has one more interesting characteristic. Because of the lower bound, it is legal to write
+The method `def addAll[B >: A](newItems: List[B]): VendingMachine[B]` has very useful characteristic. Because of the lower bound, it is legal to write
 
 {% highlight scala %}
 val colasVM: VendingMachine[Cola] = 
@@ -102,15 +115,15 @@ val softDrinksVM: VendingMachine[SoftDrink] =
                     colasVM.addAll(List(new TonicWater))
 {% endhighlight %}
 
-`SoftDrink` is the common super type of both `TonicWater` and `Cola`, so `addAll` above returns a `VendingMachine` of type `SoftDrink`.
+`SoftDrink` is the common supertype of both `TonicWater` and `Cola`, so `addAll` above returns a `VendingMachine` of type `SoftDrink`. This can be 
 
-#### Covariant type parameter as mutable field type
+#### Covariant (and contravariant) type parameter as mutable field type
 
-Covariant type parameter can be used for mutable field type only if the field has object private scope (`private[this]`). This is explained in Programming In Scala [Odersky2008].
+Type parameter with variance annotation (covariant + or contravariant -) can be used for mutable field type only if the field has object private scope (`private[this]`). This is explained in Programming In Scala [Odersky2008].
 
 > Object private members can be accessed only from within the object in which they are defined. It turns out that accesses to variables from the same object in which they are defined do not cause problems with variance. The intuitive explanation is that, in order to construct a case where variance would lead to type errors, you need to have a reference to a containing object that has a statically weaker type than the type the object was defined with. For accesses to object private values, however, this is impossible.
 
-Personally, I can't imagine there being many good use cases for using covariant type parameter for mutable field type. However, I have prepared an example that shows how rule above can be applied in Scala. Imagine that you are creating a sci-fi shooter game with different kinds of bullets.
+Personally, I can't imagine there being many good use cases for using covariant type parameter as mutable field type. However, I have prepared an example that shows how rule above could be applied in practice. Imagine that you are creating a sci-fi shooter game with different kinds of bullets.
 
 {% highlight scala %}
 trait Bullet
@@ -118,7 +131,7 @@ class NormalBullet extends Bullet
 class ExplosiveBullet extends Bullet
 {% endhighlight %}
 
-Bullets are contained in the the ammo magazine as seen in the next code listing. Notice that class `AmmoMagazine` is covariant in its type parameter. It also has mutable field `bullets` which compiles because of object private scope. Every time `nextBullet` is invoked, bullet from bullets list is removed. Once ammo magazine is out of bullets, it can't refilled and there is no way of introducing this feature into this class because [that would lead to potential runtime errors](#covariantuserestrictions).
+Bullets are contained in the the `AmmoMagazine` as seen in the next code listing. Notice that class `AmmoMagazine` is covariant in its type parameter. It also has mutable field `bullets` which compiles because of object private scope. Every time `giveNextBullet` is invoked, bullet from `bullets` list is removed. `AmmoMagazine` can't be refilled with bullets and there is no way of introducing this feature into this class because [that would lead to potential runtime errors](#covariantuserestrictions).
 
 {% highlight scala %}
 final class AmmoMagazine[+A <: Bullet](
@@ -140,7 +153,7 @@ final class AmmoMagazine[+A <: Bullet](
 }
 {% endhighlight %}
 
-So where is the covariance used? In the `Gun` class. A `Gun` can be reloaded with `AmmoMagazine` of type `Bullet` which means that both `AmmoMagazine[NormalBullet]` and `AmmoMagazine[ExplosiveBullet]` can be passed to this method, and in general `AmmoMagazine` of any subtype of `Bullet`.
+`AmmoMagazine` is used in the `Gun` class that takes advantage of covariant subtyping. A `Gun` can be reloaded with `AmmoMagazine` of type `Bullet` which means that both `AmmoMagazine[NormalBullet]` and `AmmoMagazine[ExplosiveBullet]` can be passed to this method, and in general `AmmoMagazine` of any subtype of `Bullet`.
 
 {% highlight scala %}
 final class Gun(private var ammoMag: AmmoMagazine[Bullet]) {
@@ -162,8 +175,6 @@ val gun = new Gun(AmmoMagazine.newNormalBulletsMag)
 // compiles, because of covariant subtyping
 gun.reload(AmmoMagazine.newExplosiveBulletsMag)  
 {% endhighlight %}
-
-More details about how legal positions of covariant type parameter are determined can be found in _The fast track_ section of Type Parameterization chapter in [Programming In Scala](http://www.artima.com/pins1ed/type-parameterization.html).
 
 ## Contravariance ##
 <a name="contravariance"></a>
@@ -443,7 +454,7 @@ If you forget rules above, try to remind yourself of vending machine and garbage
 
 [Bloch2008] Bloch, Joshua. _Effective Java: Second Edition_. Addison-Wesley, Boston, 2008
 
-[Reactivex.io] http://reactivex.io/intro.html
+[Reactivex.io] <http://reactivex.io/intro.html>
 
 ## Terms table ##
 
