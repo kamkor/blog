@@ -2,7 +2,7 @@
 layout: post
 title: Covariance and contravariance in Scala
 ---
-This post explains concepts of covariance and contravariance. It focuses on real world metaphors and on code examples that show how those concepts can be used in Scala. Metaphors are borrowed from Erik Meijer talk _Contravariance is the Dual of Covariance Implies Iterable is the Dual of Observable (Making Money Using Math)_ [Meijer2014].
+This post explains concepts of covariance and contravariance. It focuses on real world metaphors and on code examples that show how those concepts can be used in Scala. Metaphors are borrowed from Erik Meijer's talk _Contravariance is the Dual of Covariance Implies Iterable is the Dual of Observable (Making Money Using Math)_ [Meijer2014].
 
 ## Covariance
 <a name="covariance"></a>
@@ -22,7 +22,7 @@ def install(softDrinkVM: VendingMachine[SoftDrink]): Unit = {
 }
 {% endhighlight %}
 
-`install` method accepts `VendingMachine` of type `SoftDrink` or subtypes of `SoftDrink` (`Cola` and `TonicWater`). This is possible because type parameter `A` is prefixed with a +. It indicates that subtyping is covariant in that parameter. Alternatively, it can be said that class `VendingMachine` is covariant in its type parameter `A`. Next code snippet shows covariant subtyping because `Cola` and `TonicWater` are subtypes of `SoftDrink`.
+`install` method accepts a `VendingMachine` of type `SoftDrink` or subtypes of `SoftDrink` (`Cola` and `TonicWater`). This is possible because type parameter `A` is prefixed with a +. It indicates that subtyping is covariant in that parameter. Alternatively, it can be said that class `VendingMachine` is covariant in its type parameter `A`. Next code snippet shows covariant subtyping because `Cola` and `TonicWater` are subtypes of `SoftDrink`.
 
 {% highlight scala %}
 // covariant subtyping
@@ -32,7 +32,7 @@ install(new VendingMachine[TonicWater])
 install(new VendingMachine[SoftDrink])
 {% endhighlight %}
 
-However, `VendingMachine` of type `Drink` can't be passed to `install` method because `Drink` is a supertype of `SoftDrink`. That would be contravariant subtyping. [Contravariance is explained later in this post](#contravariance).
+However, a `VendingMachine` of type `Drink` can't be passed to `install` method because `Drink` is a supertype of `SoftDrink`. That would be contravariant subtyping. [Contravariance is explained later](#contravariance).
 
 {% highlight scala %}
 // Compile error ! contravariant subtyping
@@ -56,10 +56,10 @@ When type parameter is declared as covariant, the number of positions where it c
 Unfortunately, arrays in Java are covariant. This allows code below to compile because `String` is a subtype of `Object`. Therefore, covariant subtyping can be applied.
 
 {% highlight java %}
-Object[] arr = new String[3];
+Object[] objects = new String[] { "abc" };
 {% endhighlight %}
 
-If `arr` will be modified with value of type other than `String` then `ArrayStoreException` will be thrown.
+If `objects` will be modified with value of type other than `String` then `ArrayStoreException` will be thrown.
 
 {% highlight java %}
 String[] strings = { "abc" };
@@ -81,7 +81,7 @@ final class Array[T](_length: Int) {
 }
 {% endhighlight %}
 
-Scala Array type parameter doesn't have covariance annotation (+ prefix), if it had, the method `def update(i: Int, x: T): Unit` could lead to potential runtime errors. And if it actually did have a + prefix, Scala compiler would have reported compile error.
+Scala's `Array` type parameter doesn't have covariance annotation (+ prefix), if it had, the method `def update(i: Int, x: T): Unit` could lead to potential runtime errors. And if it actually did have a + prefix, Scala compiler would have reported compile error.
 
 ### <a name="legalcovariantpositions"></a> Legal positions of covariant type parameter
 
@@ -111,7 +111,7 @@ class VendingMachine[+A](val currentItem: Option[A], items: List[A]) {
 }
 {% endhighlight %}
 
-The method `def addAll[B >: A](newItems: List[B]): VendingMachine[B]` has very useful characteristic. Following can be written thanks to the lower bound.
+The method `def addAll[B >: A](newItems: List[B]): VendingMachine[B]` has very useful characteristic. Lower bound makes `addAll` very flexible as seen below.
 
 {% highlight scala %}
 val colasVM: VendingMachine[Cola] = 
@@ -158,14 +158,13 @@ final class AmmoMagazine[+A <: Bullet](
 }
 {% endhighlight %}
 
-`AmmoMagazine` is used in the `Gun` class. `Gun` has method `reload` which due to covariant subtyping can be reloaded with both `AmmoMagazine[NormalBullet]` and `AmmoMagazine[ExplosiveBullet]`, and in general with `AmmoMagazine` of any subtype of `Bullet`.
+`AmmoMagazine` is used in the `Gun` class. `Gun` has method `reload` which thanks to covariant subtyping can be reloaded with both `AmmoMagazine[NormalBullet]` and `AmmoMagazine[ExplosiveBullet]`, and in general with `AmmoMagazine` of any subtype of `Bullet`.
 
 {% highlight scala %}
 final class Gun(private var ammoMag: AmmoMagazine[Bullet]) {
 
-  def reload(ammoMag: AmmoMagazine[Bullet]): Unit = {
+  def reload(ammoMag: AmmoMagazine[Bullet]): Unit =
     this.ammoMag = ammoMag  
-  }
 
   def hasAmmo: Boolean = ammoMag.hasBullets
 
@@ -177,7 +176,7 @@ final class Gun(private var ammoMag: AmmoMagazine[Bullet]) {
 
 {% highlight scala %}
 val gun = new Gun(AmmoMagazine.newNormalBulletsMag)
-// compiles, because of covariant subtyping
+// compiles because of covariant subtyping
 gun.reload(AmmoMagazine.newExplosiveBulletsMag)  
 {% endhighlight %}
 
@@ -188,7 +187,7 @@ This section is very similar to the previous one because contravariance is simpl
 
 ![diagram]({{ site.baseurl }}/images/Covariance-And-Contravariance-In-Scala/items_model.png)
 
-Long time ago all kinds of trash could be put into single garbage can. Nowadays, trash must be segregated into different garbage cans - one for plastic items, one for paper items and so on. Contravariance means that if you need a garbage can for plastic items, you can simply set in its place a garbage can for items, because item is the super type of plastic item. In Scala, this can be expressed as follows.
+Long time ago all kinds of trash could be put into single garbage can. Nowadays, trash must be segregated into different garbage cans - one for plastic items, one for paper items and so on. Contravariance means that if you need a garbage can for plastic items, you can simply set in its place a garbage can for items, because item is the supertype of plastic item. In Scala, this can be expressed as follows.
 
 {% highlight scala %}
 class GarbageCan[-A] {
@@ -200,7 +199,7 @@ def setGarbageCanForPlastic(gc: GarbageCan[PlasticItem]): Unit = {
 }
 {% endhighlight %}
 
-`setGarbageCanForPlastic` method can accept a `GarbageCan` of type `PlasticItem` or super type of `PlasticItem` (`Item`). This is possible because type parameter A is prefixed with a -. It indicates that subtyping is contravariant in that parameter. Alternatively, it can be said that class `GarbageCan` is contravariant in its type parameter `A`. Next code snippet shows contravariant subtyping because `Item` is the super type of `PlasticItem`.
+`setGarbageCanForPlastic` method can accept a `GarbageCan` of type `PlasticItem` or supertype of `PlasticItem` (`Item`). This is possible because type parameter `A` is prefixed with a -. It indicates that subtyping is contravariant in that parameter. Alternatively, it can be said that class `GarbageCan` is contravariant in its type parameter `A`. Next code snippet shows contravariant subtyping because `Item` is the supertype of `PlasticItem`.
 
 {% highlight scala %}
 // contravariant subtyping
@@ -221,55 +220,55 @@ To sum up.
 
 {% highlight scala %}
 // Contravariant subtyping
-               A  <:                B
-VendingMachine[B] <: VendingMachine[A]
+           A  <:            B
+GarbageCan[B] <: GarbageCan[A]
 {% endhighlight %}
 
-If `A` is a subtype of `B` then `VendingMachine[B]` should be a subtype of `VendingMachine[A]`. This property is called contravariant subtyping.
+If `A` is a subtype of `B` then `GarbageCan[B]` should be a subtype of `GarbageCan[A]`. This property is called contravariant subtyping.
 
 ### Use cases for contravariant type parameter ###
 
-Contravariant type parameter is usually used as method argument type, so naturally contravariance is most commonly used in consumers (types that accept something). Just like with the covariance, Scala compiler prevents from the use of contravariant type parameter in positions that could lead to potential errors. If contravariant type parameter was used in illegal position such as method return type, Scala compiler would have reported an error. 
-
-Typical use of contravariant type parameter is applied in the [example implementation of `GarbageCan`](https://github.com/kamkor/covariance-and-contravariance-examples/blob/master/src/main/scala/kamkor/contravariance/garbagecan/GarbageCan.scala). Code snippet below shows `GarbageCan` trait.
+Contravariant type parameter is usually used as method argument type, so naturally contravariance is most commonly seen in consumers (types that accept something). It can also be used as mutable field type if the field has object private scope as explained [before](#variancemutablefieldtype). Scala compiler prevents from the use of contravariant type parameter in positions that could lead to potential errors. If contravariant type parameter is used in illegal position such as method return type then Scala compiler reports an error. Typical use of contravariant type parameter is applied in the following implementation of `GarbageCan`.
 
 {% highlight scala %}
-/** GarbageCan that is contravariant in its type parameter. */
-trait GarbageCan[-A] {
+class GarbageCan[-A] {
 
-  /** Puts item into this garbage can */
-  def put(item: A): Unit
+  // Instead of object private scope, 
+  // lower bound can be used.
+  // type B >: A
+  // private var items: List[B] = _ 
 
-  /** Puts items into this garbage can */
-  def putAll(items: List[A]): Unit
+  // compiles because of object private scope
+  private[this] var items: List[A] = List.empty
 
-  /** Returns current number of items in the garbage can */
-  val itemsCount: Int
+  def put(item: A): Unit = this.items :+= item
+
+  def putAll(items: List[A]): Unit = this.items ++= items
+
+  def itemsCount: Int = this.items.size
 
 }
 {% endhighlight %}
-
-Note that if you would like to use type parameter `A` as mutable field type, you must either use lower bound for type or use object private scope for field as explained [here](#variance_mutable_field_type).
 
 ## Real world use cases ##
 
-Covariance and contravariance is actually quite common in functional style programming. This section shows example use cases from real APIs used by many developers on daily basis.
+Covariance and contravariance is actually quite common in functional style programming. This section shows example use cases from real APIs used by many developers on a daily basis.
 
-### Function type (T1) => R ###
+### Function type (T) => R ###
 
-One of the most common type used in the functional programming style is [function (T1) => R](http://www.scala-lang.org/api/current/#scala.Function1). 
+One of the most common type used in the functional programming style is [function (T) => R](http://www.scala-lang.org/api/current/#scala.Function1). 
 
 {% highlight scala %}
 // a bit simplified source code from Scala API
-trait Function1[-T1, +R] extends AnyRef { 
-  def apply(v1: T1): R
+trait Function1[-T, +R] extends AnyRef { 
+  def apply(v1: T): R
 }
 {% endhighlight %}
 
-In this type both contravariance and covariance is used. `T1` is contravariant type parameter because it is used as `apply` input type and `R` is covariant type parameter because it is used as `apply` return type. This makes type `Function1` very generic. Let's examine how contravariance in `Function1` helps you achieve more with less code. Below code snippet presents music instruments model.
+In this type both contravariance and covariance is used. `T` is contravariant type parameter because it is used as `apply` input type and `R` is covariant type parameter because it is used as `apply` return type. This makes type `Function1` very flexible. Let's examine how contravariance in `Function1` helps to achieve more with less code. Below code snippet presents music instruments model.
 
 {% highlight scala %}
-class MusicInstrument {
+trait MusicInstrument {
   val productionYear: Int
 }
 case class Guitar(val productionYear: Int) extends MusicInstrument   
@@ -282,7 +281,7 @@ Next code snippet shows a function that returns true if MusicInstrument is vinta
 val isVintage: (MusicInstrument => Boolean) = _.productionYear < 1980
 {% endhighlight %}
 
-This function can be used to [filter](http://www.scala-lang.org/api/current/index.html#scala.collection.immutable.List@filter(p:A=>Boolean):Repr) both `List[Piano]` and `List[Guitar]`. If T1 from function (T1) => R, was not a contravariant type parameter, then two isVintage function would have to be implemented, one for 'Piano' and one for 'Guitar'. 
+Because of covariant subtyping, this function can be used to [filter](http://www.scala-lang.org/api/current/index.html#scala.collection.immutable.List@filter(p:A=>Boolean):Repr) both `List[Piano]` and `List[Guitar]`. If `T` from function `(T) => R` was not a contravariant type parameter then two versions of `isVintage` function would have to be implemented, one for `Piano` and one for `Guitar`. See it in action code listing below.
 
 {% highlight scala %}
 val isVintage: (MusicInstrument => Boolean) = _.productionYear < 1980
@@ -306,9 +305,11 @@ test("should filter vintage pianos") {
 }
 {% endhighlight %}
 
+Example above only took advantage of contravariant type parameter of `(T1) => R` but covariant type parameter `R` can be just as useful.
+
 ### Immutable container types - Option, Collections ###
 
-Scala immutable container types such as [`Option`](http://www.scala-lang.org/api/current/#scala.Option), [`List`](http://www.scala-lang.org/api/current/#scala.collection.immutable.List) are covariant in its type parameter. If this wasn't the case, then in the code snippet below, separate `getPrices` method for each `MusicInstrument` would have to be implemented. However, with the covariance, one method is enough.
+Scala immutable container types such as [`Option`](http://www.scala-lang.org/api/current/#scala.Option) and [`List`](http://www.scala-lang.org/api/current/#scala.collection.immutable.List) are covariant in its type parameter. If this wasn't the case then in the code snippet below, separate `getPrices` method for each subtype of `MusicInstrument` would have to be implemented. However, with the use of covariant subtyping, one method is enough.
 
 {% highlight scala %}
 def getPrices(instruments: List[MusicInstrument]) = {
