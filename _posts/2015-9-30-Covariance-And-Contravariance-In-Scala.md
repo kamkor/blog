@@ -323,17 +323,18 @@ val guitarsPrices = getPrices(guitars)
 
 ### RxScala ###
 
-Asynchronous and event-based programs have been gaining a lot of popularity in the recent years. It used to be really challenging to write such programs but with the arrival of [Reactive Extensions](http://reactivex.io/) things have become much easier. Quote below explains what are Reactive Extensions in short [Reactivex.io].
+Asynchronous and event-based programs have gained a lot of popularity in the recent years. It used to be really challenging to write such programs but with the arrival of the [Reactive Extensions](http://reactivex.io/) things became much easier. Quote below explains what are Reactive Extensions in short [Reactivex.io].
 
 > ReactiveX is a library for composing asynchronous and event-based programs by using observable sequences.
 >
 >It extends the observer pattern to support sequences of data and/or events and adds operators that allow you to compose sequences together declaratively while abstracting away concerns about things like low-level threading, synchronization, thread-safety, concurrent data structures, and non-blocking I/O.
 
-Reactive extensions have been implemented in many languages, including Scala in project [RxScala](http://reactivex.io/rxscala/). What does it have to do with this post? This library makes heavy use of covariance and contravariance. Just look at two [`Observable`](http://reactivex.io/rxscala/scaladoc/index.html#rx.lang.scala.Observable) and [`Observer`](http://reactivex.io/rxscala/scaladoc/index.html#rx.lang.scala.Observer) which are two most important types from this library. Those types are examined next and a new advanced concept of flipped classification is introduced.
+Reactive extensions have been implemented in many languages, also in Scala in project [RxScala](http://reactivex.io/rxscala/). What does it have to do with this post? This library makes heavy use of covariance and contravariance. Take look at [`Observable`](http://reactivex.io/rxscala/scaladoc/index.html#rx.lang.scala.Observable) and [`Observer`](http://reactivex.io/rxscala/scaladoc/index.html#rx.lang.scala.Observer) which are two most important types from this library. Those types are examined next and a new advanced concept called flipped classification is introduced.
 
 #### Flipped classification ####
 
 {% highlight scala %}
+// very simiplified version of Observable
 trait Observable[+T] {  
   def subscribe(observer: Observer[T]): Subscription  
   def map[R](func: T => R): Observable[R]  
@@ -344,48 +345,67 @@ trait Observable[+T] {
 `Observable` is a type that produces values of type `T`, so it is covariant in type parameter `T`. However, if you look at method `subscribe` you might think that it uses type `T` in illegal position. After all, it was explained before that if type parameter is declared as covariant then it can be used as method argument type if it has a lower bound (`[B >: T]`). So the question is, why `subscribe` above compiles? The answer is flipped classification. Method `subscribe` accepts parametrized type `Observer` as an argument. The trick is that `Observer` is contravariant in its type parameter `T`.
 
 {% highlight scala %}
+// simplified version of Observer
 trait Observer[-T] {
   def onNext(value: T): Unit  
   // .. more methods
 }
 {% endhighlight %}
 
-Flipped classification also applies to `map` method of `Observable`. Method `map` accepts as an argument type `(T => R)`, that is `Function1[-T, +R]`. `Function1` is contravariant in type parameter T so flipped classification is also applied by the Scala compiler. 
+Flipped classification also applies to `map` method of `Observable`. Method `map` accepts as an argument function `(T => R)`, that is `Function1[-T, +R]`. `Function1` is contravariant in type parameter `T` so flipped classification is also applied by the Scala compiler. 
 
-Flipped classification is explained in more detail in in _The fast track_ section of Type Parameterization chapter in [Programming In Scala](http://www.artima.com/pins1ed/type-parameterization.html). 
+Flipped classification is explained in more detail in _The fast track_ section of Type Parameterization chapter in [Programming In Scala](http://www.artima.com/pins1ed/type-parameterization.html). 
 
 ## Use-site and declaration-site variance ##
 
-So far this post has shown declaration-site variance because variance was defined during the declaration of the type by its creator, like below:
+So far this post has shown declaration-site variance because variance was defined by its creator during the declaration of the type like below:
 
 {% highlight scala %}
 class VendingMachine[+A]
 {% endhighlight %}
 
-There is also use-site variance in which variance is defined by the user of the type. For example, see `VendingMachine` below which is invariant in its type parameter `A`.
+There is also use-site variance in which variance is defined by the user of the type. Let's examine how. First of all, look at `VendingMachine` below which is invariant in its type parameter `A`. 
 
 {% highlight scala %}
-class VendingMachine[A] {
-  // Vending Machine is invariant in type parameter A, so
-  // you can use that type parameter however you want.
-}
+class VendingMachine[A]
 {% endhighlight %}
 
-If the user of the `VendingMachine` would like to use covariant subtyping then he would have to define covariance himself, for example like in the code below.
+If the user of the `VendingMachine` would like to use covariant subtyping then he would have to define covariance himself like in the code below.
 
 {% highlight scala %}
-/**
- * Use-site covariance using bounds. Accepts a Vending Machine
- * of type SoftDrink or subtypes of SoftDrink (Cola or TonicWater).
- */
 def install(softDrinkVM: VendingMachine[_ <: SoftDrink]): Unit = {
   // Installs soft drink vending machine
 }
+// covariant subtyping
+install(new VendingMachine[Cola])
 {% endhighlight %}
 
-`<:` is like `extends` from Java. It looks pretty ugly doesn't it? If `install` method was defined as `install(softDrinkVM: VendingMachine[SoftDrink])` then code above wouldn't compile because it would require the types to match exactly. That is, only `install(new VendingMachine[SoftDrink])` would have worked.
+If method `install` was defined as `install(softDrinkVM: VendingMachine[SoftDrink]): Unit` then code above wouldn't compile because it would require the types to match exactly. That is, `install` method would have accepted only value of type `VendingMachine[SoftDrink]`. 
 
-So besides this being pretty ugly, there is also another problem. Take a look at class `Box` defined in the next code listing. `Box` uses type parameter `A` as both output and input, so it can't be declared by the creator of the class as neither covariant nor contravariant. 
+Personally I think that in contrast to declaration-site variance, use-site variance makes code look ugly and hard to read. Worst of all, this ugliness is often exposed in public API. Consider Java which only supports use-site variance for generics. Java 8 introduced lambdas and a lot of new functional style types in its standard library. Those types often use covariance and contravariance so that they can be more flexible. The price of this flexibility is API ugliness. Below are some examples from Javadoc.
+
+{% highlight java %}
+// from CompletableFuture
+thenCombine(
+	CompletionStage<? extends U> other,
+	BiFunction<? super T,? super U,? extends V> fn)
+		
+// from Collectors
+groupingBy(
+	Function<? super T,? extends K> classifier, 
+	Collector<? super T,A,D> downstream)
+
+toMap(
+	Function<? super T,? extends K> keyMapper, 
+	Function<? super T,? extends U> valueMapper)
+	
+// from Function
+compose(Function<? super V,? extends T> before)
+{% endhighlight %}
+
+In functional style programming it is very usual to have higher order functions, that is functions that take function as a parameter. So in Java 8, everytime a higher order function is defined, the accepted function should be defined like `Function<? super T,? extends K>`. This is really cumbersome and ugly, but as Java programmers we have to live with it.
+
+There is also another problem with use-site variance. Take a look at class `Box` defined in the next code listing. `Box` uses type parameter `A` as both output and input, so it can't be declared by the creator of the class as neither covariant nor contravariant. 
 
 {% highlight scala %}
 class Box[A]() {
