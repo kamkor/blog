@@ -226,7 +226,7 @@ GarbageCan[B] <: GarbageCan[A]
 
 If `A` is a subtype of `B` then `GarbageCan[B]` should be a subtype of `GarbageCan[A]`. This property is called contravariant subtyping.
 
-### Use cases for contravariant type parameter ###
+### Use cases for contravariant type parameter
 
 Contravariant type parameter is usually used as method argument type, so naturally contravariance is most commonly seen in consumers (types that accept something). It can also be used as mutable field type if the field has object private scope as explained [before](#variancemutablefieldtype). Scala compiler prevents from the use of contravariant type parameter in positions that could lead to potential errors. If contravariant type parameter is used in illegal position such as method return type then Scala compiler reports an error. Typical use of contravariant type parameter is applied in the following implementation of `GarbageCan`.
 
@@ -331,7 +331,7 @@ Asynchronous and event-based programs have gained a lot of popularity in the rec
 
 Reactive extensions have been implemented in many languages, also in Scala in project [RxScala](http://reactivex.io/rxscala/). What does it have to do with this post? This library makes heavy use of covariance and contravariance. Take look at [`Observable`](http://reactivex.io/rxscala/scaladoc/index.html#rx.lang.scala.Observable) and [`Observer`](http://reactivex.io/rxscala/scaladoc/index.html#rx.lang.scala.Observer) which are two most important types from this library. Those types are examined next and a new advanced concept called flipped classification is introduced.
 
-#### Flipped classification ####
+#### Flipped classification
 
 {% highlight scala %}
 // very simiplified version of Observable
@@ -356,21 +356,17 @@ Flipped classification also applies to `map` method of `Observable`. Method `map
 
 Flipped classification is explained in more detail in _The fast track_ section of Type Parameterization chapter in [Programming In Scala](http://www.artima.com/pins1ed/type-parameterization.html). 
 
-## Use-site and declaration-site variance ##
+## Use-site and declaration-site variance
 
-So far this post has shown declaration-site variance because variance was defined by its creator during the declaration of the type like below:
+So far this post has shown declaration-site variance because variance was defined during the declaration of the type with a + prefix for covariant type parameter and a - prefix for contravariant type parameter.
 
-{% highlight scala %}
-class VendingMachine[+A]
-{% endhighlight %}
-
-There is also use-site variance in which variance is defined by the user of the type. Let's examine how. First of all, look at `VendingMachine` below which is invariant in its type parameter `A`. 
+There is also use-site variance where variance is defined by the user of the type. It is best explained with an example. `VendingMachine` below is invariant in its type parameter `A`. 
 
 {% highlight scala %}
 class VendingMachine[A]
 {% endhighlight %}
 
-If the user of the `VendingMachine` would like to use covariant subtyping then he would have to define covariance himself like in the code below.
+If the user of the `VendingMachine` would like to use covariant subtyping then he would have to define covariance himself using upper bound.
 
 {% highlight scala %}
 def install(softDrinkVM: VendingMachine[_ <: SoftDrink]): Unit = {
@@ -380,9 +376,11 @@ def install(softDrinkVM: VendingMachine[_ <: SoftDrink]): Unit = {
 install(new VendingMachine[Cola])
 {% endhighlight %}
 
-If method `install` was defined as `install(softDrinkVM: VendingMachine[SoftDrink]): Unit` then code above wouldn't compile because it would require the types to match exactly. That is, `install` method would have accepted only value of type `VendingMachine[SoftDrink]`. 
+If the method `install` was defined as `install(softDrinkVM: VendingMachine[SoftDrink]): Unit` then code above wouldn't compile because it would require the types to match exactly. That is, `install` method would have accepted only values of type `VendingMachine[SoftDrink]`. 
 
-Personally I think that in contrast to declaration-site variance, use-site variance makes code look ugly and hard to read. Worst of all, this ugliness is often exposed in public API. Consider Java which only supports use-site variance for generics. Java 8 introduced lambdas and a lot of new functional style types in its standard library. Those types often use covariance and contravariance so that they can be more flexible. The price of this flexibility is API ugliness. Below are some examples from Javadoc.
+### Use-site variance readability and usage issues
+
+Personally I think that in contrast to declaration-site variance, use-site variance makes code look ugly and hard to read. Worst of all, this ugliness is often exposed in public API. Consider Java which only supports use-site variance for generics. Java 8 introduced lambdas and a lot of new functional style types in its standard library. Those types often use covariance and contravariance to give more flexibility to their users. The price of this flexibility is API ugliness. Below are some examples from Javadoc.
 
 {% highlight java %}
 // from CompletableFuture
@@ -403,9 +401,11 @@ toMap(
 compose(Function<? super V,? extends T> before)
 {% endhighlight %}
 
-In functional style programming it is very usual to have higher order functions, that is functions that take function as a parameter. So in Java 8, everytime a higher order function is defined, the accepted function should be defined like `Function<? super T,? extends K>`. This is really cumbersome and ugly, but as Java programmers we have to live with it.
+In functional style programming it is very usual to have higher order functions, that is functions that take function as an argument. So in Java 8, everytime a higher order function is defined, the function taken as an argument should be declared with use-site variance: `Function<? super T,? extends K>`. This is really cumbersome and ugly, but as Java programmers we have to live with it.
 
-There is also another problem with use-site variance. Take a look at class `Box` defined in the next code listing. `Box` uses type parameter `A` as both output and input, so it can't be declared by the creator of the class as neither covariant nor contravariant. 
+### Use-site variance can make functionality of the type unusable
+
+There is also another, more relevant problem with use-site variance. Take a look at class `Box` defined in the next code listing. `Box` uses type parameter `A` as both output and input, so it can't be declared by the creator of the class as neither covariant nor contravariant. 
 
 {% highlight scala %}
 class Box[A]() {
@@ -418,39 +418,39 @@ class Box[A]() {
 }
 {% endhighlight %}
 
-Imagine user wants to both put and retrieve items from the Box.
+Code below creates `Box` for `SoftDrink`. It puts `Cola` into it and then retrieves it.
 
 {% highlight scala %}
-val box: Box[SoftDrink] = new Box()
-box.put(new Cola)
-val thing: SoftDrink = box.retrieve
+val softDrinkBox: Box[SoftDrink] = new Box()
+softDrinkBox.put(new Cola)
+val softDrink: SoftDrink = box.retrieve
 {% endhighlight %}
 
-If the user would like covariant subtyping to work with the class `Box` then he would have to add variance himself. However, this will cause method `put` to be no longer usable, because compiler will not be able to figure out the correct type for the parameter of `put` method.
+If the user would like to use covariant subtyping with class `Box` then he would have to add variance himself. However, this will cause method `put` to be no longer usable because compiler will not be able to figure out the correct type for the argument of `put` method.
 
 {% highlight scala %}
-val box: Box[_ <: SoftDrink] = new Box()
+val softDrinkBox: Box[_ <: SoftDrink] = new Box()
 // type mismatch; found : Cola required: _$4
-// box.put(new Cola)
-val thing: SoftDrink = box.retrieve
+// softDrinkBox.put(new Cola)
+val softDrink: SoftDrink = softDrinkBox.retrieve
 {% endhighlight %}
 
-Similar problem exists when user wants to use contravariant subtyping.  
+On the other hand, if the user would have added contravariance then he would have made retrieve method unusable. The compiler wouldn't be able to figure out the correct return type of the retrieve method.
 
 {% highlight scala %}
-val box: Box[_ >: SoftDrink] = new Box()
-box.put(new Cola)
+val softDrinkBox: Box[_ >: SoftDrink] = new Box()
+softDrinkBox.put(new Cola)
 // type mismatch; found : _$2 required: SoftDrink    
-// val thing: SoftDrink = box.retrieve
+// val softDrink: SoftDrink = softDrinkBox.retrieve
 {% endhighlight %}
 
-Covariance and contravariance can be quite tricky to get right so it is best to define them during the declaration of the type. And finally, it also leads to really ugly and hard to read API. Java only has use-site variance and it doesn't make its API look pretty.... tadada
+The fact that use-site variance can make some functionality of the type completely unusable is very bad. It makes code unintuitive. With declaration-site variance, Scala compiler makes sure that variance annotations are only used when it makes sense, that is, only if they add more flexibility for the user. Finally, declaration-site variance makes APIs and code much cleaner than use-site variance.
 
 ## Summary ##
 
-Covariance and contravariance are something that many take for granted. It is especially relevant now because of the functional style programming that has gained a lot of popularity in the recent years. If covariance and contravariance would be suddenly turned off, a lot of code wouldn't compile any more.
+Covariance and contravariance are something that many take for granted. It is especially relevant now because of the functional style programming that has gained a lot of popularity in the recent years. If covariance and contravariance would be suddenly turned off then a lot of code wouldn't compile any more.
 
-It is important that both library developers and users understand concepts of covariance and contravariance. Covariance and contravariance makes libraries more generic and lets their aware users achieve more functionality with less code. 
+It is important that both library developers and users understand concepts of covariance and contravariance. Covariance and contravariance makes libraries more flexible and lets their users achieve more functionality with less code. 
 
 From the perspective of library developer it is easiest to remember that covariant type parameter should be most often used as output type and contravariant type parameter as input type. If you want to use type parameter as both input and output type, then it should be invariant.
 
