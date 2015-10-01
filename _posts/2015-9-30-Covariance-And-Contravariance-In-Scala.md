@@ -22,7 +22,7 @@ def install(softDrinkVM: VendingMachine[SoftDrink]): Unit = {
 }
 {% endhighlight %}
 
-`install` method accepts a `VendingMachine` of type `SoftDrink` or subtypes of `SoftDrink` (`Cola` and `TonicWater`). This is possible because type parameter `A` is prefixed with a +. It indicates that subtyping is covariant in that parameter. Alternatively, it can be said that class `VendingMachine` is covariant in its type parameter `A`. Next code snippet shows covariant subtyping because `Cola` and `TonicWater` are subtypes of `SoftDrink`.
+The `install` method accepts a `VendingMachine` of type `SoftDrink` or subtypes of `SoftDrink` (`Cola` and `TonicWater`). This is possible because type parameter `A` is prefixed with a +. It indicates that subtyping is covariant in that parameter. Alternatively, it can be said that class `VendingMachine` is covariant in its type parameter `A`. Next code snippet shows covariant subtyping because `Cola` and `TonicWater` are subtypes of `SoftDrink`.
 
 {% highlight scala %}
 // covariant subtyping
@@ -32,7 +32,7 @@ install(new VendingMachine[TonicWater])
 install(new VendingMachine[SoftDrink])
 {% endhighlight %}
 
-However, a `VendingMachine` of type `Drink` can't be passed to `install` method because `Drink` is a supertype of `SoftDrink`. That would be contravariant subtyping. [Contravariance is explained later](#contravariance).
+However, a `VendingMachine` of type `Drink` can't be passed to the `install` method because `Drink` is a supertype of `SoftDrink`. That would be contravariant subtyping. [Contravariance is explained later](#contravariance).
 
 {% highlight scala %}
 // Compile error ! contravariant subtyping
@@ -490,19 +490,18 @@ There are a lot of terms connected with covariance, contravariance and generics 
 
 Term  | Scala Example | Java Example
 -------------------------------- | -------------------------------- | --------------------------------
-Parametrized type                | ```List[String]```               | ```List<String>```
-Actual type parameter            | ```String```                     | ```String```
-Generic type                     | ```List<A>```                    | ```List<E>```
-Formal type parameter            | ```A```                          | ```E```
-Unbounded wildcard type          | ```List[_]```                    | ```List<?>```
-Raw type             | ```List```             | ```List```
-Type parameter with lower bound  | ```[A >: Number]```              | ```<E super Number>```
-Type parameter with upper bound  | ```[A <: Number]```                    | ```<E extends Number>```
-Wildcard type with lower bound   | ```[_ >: Number]```          | ```<? super Number>```
-Wildcard type with upper bound   | ```[_ <: Number]```          | ```<? extends Number>```
-Recursive type bound       | ```[A <: Ordered[A]]```        | ```<T extends Comparable<T>>```
-Type constructor         | ```List, constructs List[Int] etc```   | ```Same as in Scala```
-Variance annotation              | ```+ or - i.e. [+A] or [-A]```          | ```not supported```
-Covariance annotation            | ```+ i.e. [+A]```                       | ```not supported```
-Contravariance annotation        | ```- i.e. [-A]```                       | ```not supported```
-
+Parametrized type                | `List[String]`               | `List<String>`
+Actual type parameter            | `String`                     | `String`
+Generic type                     | `List<A>`                    | `List<E>`
+Formal type parameter            | `A`                          | `E```
+Unbounded wildcard type          | `List[_]`                    | `List<?>`
+Raw type             | `List`             | `List`
+Type parameter with lower bound  | `[A >: Number]`              | `<E super Number>`
+Type parameter with upper bound  | `[A <: Number]`                    | `<E extends Number>`
+Wildcard type with lower bound   | `[_ >: Number]`          | `<? super Number>`
+Wildcard type with upper bound   | `[_ <: Number]`          | `<? extends Number>`
+Recursive type bound       | `[A <: Ordered[A]]`        | `<T extends Comparable<T>>`
+Type constructor         | `List, constructs List[Int] etc`   | `Same as in Scala`
+Variance annotation              | `+ or - i.e. [+A] or [-A]`          | `not supported`
+Covariance annotation            | `+ i.e. [+A]`                       | `not supported`
+Contravariance annotation        | `- i.e. [-A]`                       | `not supported`
