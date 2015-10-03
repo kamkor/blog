@@ -51,7 +51,7 @@ If `A` is a subtype of `B` then `VendingMachine[A]` should be a subtype of `Vend
 
 ### <a name="covariantuserestrictions"></a> Use restrictions of covariant type parameter
 
-When type parameter is declared as covariant, the number of positions where it can be safely used is reduced. Thankfully, Scala compiler prevents from the use of covariant type parameter in positions that could lead to potential errors. Next example, this time from Java, shows why this is important. 
+When a type parameter is declared as covariant, the number of positions where it can be safely used is reduced. Thankfully, Scala compiler prevents from the use of covariant type parameter in positions that could lead to potential errors. Next example, this time from Java, shows why this is important. 
 
 Unfortunately, arrays in Java are covariant. This allows code below to compile because `String` is a subtype of `Object`. Therefore, covariant subtyping can be applied.
 
@@ -59,7 +59,7 @@ Unfortunately, arrays in Java are covariant. This allows code below to compile b
 Object[] objects = new String[] { "abc" };
 {% endhighlight %}
 
-If `objects` will be modified with value of type other than `String` then `ArrayStoreException` will be thrown.
+If `objects` would be modified with value of type other than `String` then `ArrayStoreException` would be thrown.
 
 {% highlight java %}
 String[] strings = { "abc" };
@@ -70,7 +70,7 @@ Object[] objects = strings;
 objects[0] = 1;
 {% endhighlight %}
 
-Scala fixes this problem by making its [Array](http://www.scala-lang.org/api/current/#scala.Array) type invariant.
+Scala fixes this problem by making its [Array](http://www.scala-lang.org/api/current/#scala.Array) type invariant in its type parameter.
 
 {% highlight scala %}
 // Simplified Array from Scala
@@ -81,11 +81,11 @@ final class Array[T](_length: Int) {
 }
 {% endhighlight %}
 
-Scala's `Array` type parameter doesn't have covariance annotation (+ prefix), if it had, the method `def update(i: Int, x: T): Unit` could lead to potential runtime errors. And if it actually did have a + prefix, Scala compiler would have reported compile error.
+Scala's `Array` type parameter doesn't have covariance annotation (+ prefix). If it had then the method `def update(i: Int, x: T): Unit` could lead to potential runtime errors and in Scala it wouldn't even compile.
 
 ### <a name="legalcovariantpositions"></a> Legal positions of covariant type parameter
 
-In general, covariant type parameter can be used as immutable field type, method return type and also as method argument type if method argument type has a lower bound. Because of those restrictions, covariance is most commonly used in producers (types that return something) and immutable types. Those rules are applied in the following implementation of `VendingMachine`.
+In general, covariant type parameter can be used as immutable field type, method return type and also as method argument type if the method argument type has a lower bound. Because of those restrictions, covariance is most commonly used in producers (types that return something) and immutable types. Those rules are applied in the following implementation of `VendingMachine`.
 
 {% highlight scala %}
 class VendingMachine[+A](val currentItem: Option[A], items: List[A]) {
@@ -111,7 +111,7 @@ class VendingMachine[+A](val currentItem: Option[A], items: List[A]) {
 }
 {% endhighlight %}
 
-The method `def addAll[B >: A](newItems: List[B]): VendingMachine[B]` has very useful characteristic. Lower bound makes `addAll` very flexible as seen below.
+The method `def addAll[B >: A](newItems: List[B]): VendingMachine[B]` has very useful characteristic, that is, lower bound makes the `addAll` very flexible as seen below.
 
 {% highlight scala %}
 val colasVM: VendingMachine[Cola] = 
@@ -120,7 +120,7 @@ val softDrinksVM: VendingMachine[SoftDrink] =
                     colasVM.addAll(List(new TonicWater))
 {% endhighlight %}
 
-`SoftDrink` is the common supertype of both `TonicWater` and `Cola`, so `addAll` above returns `VendingMachine` of type `SoftDrink`. 
+`SoftDrink` is the common supertype of both `TonicWater` and `Cola`, so the `addAll` above returns `VendingMachine` of type `SoftDrink`. 
 
 #### <a name="variancemutablefieldtype"></a> Covariant (and contravariant) type parameter as mutable field type
 
@@ -128,7 +128,7 @@ Type parameter with variance annotation (covariant + or contravariant -) can be 
 
 > Object private members can be accessed only from within the object in which they are defined. It turns out that accesses to variables from the same object in which they are defined do not cause problems with variance. The intuitive explanation is that, in order to construct a case where variance would lead to type errors, you need to have a reference to a containing object that has a statically weaker type than the type the object was defined with. For accesses to object private values, however, this is impossible.
 
-Personally, I can't imagine there being many good use cases for using covariant type parameter as mutable field type. However, I have prepared an example that shows how rule above could be applied in practice. Imagine that you are creating a sci-fi shooter game with different kinds of bullets.
+Next example shows how rule above could be applied in practice. Imagine that you are creating a sci-fi shooter game where player can shoot with different kinds of bullets.
 
 {% highlight scala %}
 trait Bullet
@@ -136,7 +136,7 @@ class NormalBullet extends Bullet
 class ExplosiveBullet extends Bullet
 {% endhighlight %}
 
-Bullets are contained in the the `AmmoMagazine` as seen in the next code listing. Notice that class `AmmoMagazine` is covariant in its type parameter. It also has mutable field `bullets` which compiles because of object private scope. Every time `giveNextBullet` is invoked, bullet from `bullets` list is removed. `AmmoMagazine` can't be refilled with bullets and there is no way of introducing this feature into this class because [that would lead to potential runtime errors](#covariantuserestrictions).
+Bullets are contained in the the `AmmoMagazine` as seen in the next code listing. Notice that class `AmmoMagazine` is covariant in its type parameter `A`. It also contains mutable field `bullets` which compiles because of object private scope. Everytime the method `giveNextBullet` is invoked, bullet from the `bullets` list is removed. `AmmoMagazine` can't be refilled with bullets and there is no way of introducing this feature into this class because [that would have led to potential runtime errors](#covariantuserestrictions).
 
 {% highlight scala %}
 final class AmmoMagazine[+A <: Bullet](
@@ -358,9 +358,9 @@ Flipped classification is explained in more detail in _The fast track_ section o
 
 ## Use-site and declaration-site variance
 
-So far this post has shown declaration-site variance because variance was defined during the declaration of the type with a + prefix for covariant type parameter and a - prefix for contravariant type parameter.
+So far this post has described declaration-site variance because variance was defined during the declaration of the type with a + prefix for covariant type parameter and a - prefix for contravariant type parameter.
 
-There is also use-site variance where variance is defined by the user of the type. It is best explained with an example. `VendingMachine` below is invariant in its type parameter `A`. 
+Another kind of variance is use-site variance which is defined by the user of the type. It is best explained with an example. `VendingMachine` below is invariant in its type parameter `A`. 
 
 {% highlight scala %}
 class VendingMachine[A]
@@ -380,7 +380,7 @@ If the method `install` was defined as `install(softDrinkVM: VendingMachine[Soft
 
 ### Use-site variance readability and usage issues
 
-Personally I think that in contrast to declaration-site variance, use-site variance makes code look ugly and hard to read. Worst of all, this ugliness is often exposed in public API. Consider Java which only supports use-site variance for generics. Java 8 introduced lambdas and a lot of new functional style types in its standard library. Those types often use covariance and contravariance to give more flexibility to their users. The price of this flexibility is API ugliness. Below are some examples from Javadoc.
+Personally I think that in contrast to declaration-site variance, use-site variance makes code harder to read. Worst of all, use-site variance has to be often exposed in public API. Consider Java which only supports use-site variance for generics. Java 8 introduced lambdas and added a lot of new functional style types to its standard library. Those types often use covariance and contravariance to give their users more flexibility. The price of this flexibility is API that can be unpleasant to read. Listing below shows few JavaDoc example methods of new types added to Java 8.
 
 {% highlight java %}
 // from CompletableFuture
@@ -401,20 +401,21 @@ toMap(
 compose(Function<? super V,? extends T> before)
 {% endhighlight %}
 
-In functional style programming it is very usual to have higher order functions, that is functions that take function as an argument. So in Java 8, everytime a higher order function is defined, the function taken as an argument should be declared with use-site variance: `Function<? super T,? extends K>`. This is really cumbersome and ugly, but as Java programmers we have to live with it.
+In functional style programming it is very usual to have higher order functions, that is, functions that take function as an argument. In Java 8, everytime a higher order function is defined, the function taken as an argument should have use-site variance annotations: `Function<? super T,? extends K>`. This is really cumbersome but as Java programmers we have to live with it. Things would be much easier and more pleasant if Java had declaration-site variance.
 
-### Use-site variance can make functionality of the type unusable
+### Use-site variance may reduce functionality of the type
 
-There is also another, more relevant problem with use-site variance. Take a look at class `Box` defined in the next code listing. `Box` uses type parameter `A` as both output and input, so it can't be declared by the creator of the class as neither covariant nor contravariant. 
+Another more relevant problem with use-site variance exists. Take a look at class `Box` defined in the next code listing. `Box` uses type parameter `A` as both output and input, so it can't be declared by the creator of the class as neither covariant nor contravariant. 
 
 {% highlight scala %}
 class Box[A]() {
+
   private var _thing: A = _
-
+  
   def retrieve: A = _thing
-
-   // explicit setter for the sake of example    
-   def put(thing: A) = this._thing = thing
+  
+  def put(thing: A) = this._thing = thing
+  
 }
 {% endhighlight %}
 
@@ -426,7 +427,7 @@ softDrinkBox.put(new Cola)
 val softDrink: SoftDrink = box.retrieve
 {% endhighlight %}
 
-If the user would like to use covariant subtyping with class `Box` then he would have to add variance himself. However, this will cause method `put` to be no longer usable because compiler will not be able to figure out the correct type for the argument of `put` method.
+If the user would like to use covariant subtyping with class `Box` then he would have to add variance annotations himself. However, this would have caused method `put` to be no longer usable because compiler would not be able to figure out the correct type of the argument of `put` method. 
 
 {% highlight scala %}
 val softDrinkBox: Box[_ <: SoftDrink] = new Box()
@@ -435,13 +436,25 @@ val softDrinkBox: Box[_ <: SoftDrink] = new Box()
 val softDrink: SoftDrink = softDrinkBox.retrieve
 {% endhighlight %}
 
-On the other hand, if the user would have added contravariance then he would have made retrieve method unusable. The compiler wouldn't be able to figure out the correct return type of the retrieve method.
+On the other hand, if the user would like to use contravariant subtyping then he would have made `retrieve` method mostly unusable. That is, any type safety would be gone. User could only retrieve 
+
+The compiler wouldn't be able to figure out the correct return type of the retrieve method.
 
 {% highlight scala %}
 val softDrinkBox: Box[_ >: SoftDrink] = new Box()
 softDrinkBox.put(new Cola)
 // type mismatch; found : _$2 required: SoftDrink    
 // val softDrink: SoftDrink = softDrinkBox.retrieve
+{% endhighlight %}
+
+Java programmers sometimes have to make a collection like `java.util.List` covariant or contravariant in its type parameter. The same issues as with `Box` class apply there. 
+
+{% highlight java %}
+// you can't put elements into numbersCov but only retrieve them
+final java.util.List<? extends Number> numbersCov;
+
+// you can put elements into numbersContr but can't retrieve them
+final java.util.List<? super Number> numbersContr;
 {% endhighlight %}
 
 The fact that use-site variance can make some functionality of the type completely unusable is very bad. It makes code unintuitive. With declaration-site variance, Scala compiler makes sure that variance annotations are only used when it makes sense, that is, only if they add more flexibility for the user. Finally, declaration-site variance makes APIs and code much cleaner than use-site variance.
