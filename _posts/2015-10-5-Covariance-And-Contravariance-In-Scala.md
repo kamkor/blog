@@ -228,15 +228,10 @@ If `A` is a subtype of `B` then `GarbageCan[B]` should be a subtype of `GarbageC
 
 ### Use cases for contravariant type parameter
 
-Contravariant type parameter is usually used as method argument type, so naturally contravariance is most commonly seen in consumers (types that accept something). It can also be used as mutable field type if the field has object private scope as explained [before](#variancemutablefieldtype). Scala compiler prevents from the use of contravariant type parameter in positions that could lead to potential errors. If contravariant type parameter is used in illegal position such as method return type then Scala compiler reports an error. Typical use of contravariant type parameter is applied in the following implementation of `GarbageCan`.
+Contravariant type parameter is usually used as method argument type, so naturally contravariance is most commonly seen in consumers (types that accept something). It can also be used as mutable field type if the field has object private scope as explained [before](#variancemutablefieldtype). Scala compiler prevents from the use of contravariant type parameter in positions that could lead to potential errors. If contravariant type parameter would have been used in illegal position such as method return type then Scala compiler would have reported an error. Example use of contravariant type parameter is applied in the following implementation of `GarbageCan`.
 
 {% highlight scala %}
 class GarbageCan[-A] {
-
-  // Instead of object private scope, 
-  // lower bound can be used.
-  // type B >: A
-  // private var items: List[B] = _ 
 
   // compiles because of object private scope
   private[this] var items: List[A] = List.empty
@@ -250,9 +245,9 @@ class GarbageCan[-A] {
 }
 {% endhighlight %}
 
-## Real world use cases ##
+## Real world examples ##
 
-Covariance and contravariance is actually quite common in functional style programming. This section shows example use cases from real APIs used by many developers on a daily basis.
+Covariance and contravariance is very common in functional style programming. Many APIs used by developers on a daily basis use variance annotations to make their types more flexible by allowing covariant and contravariant subtyping.
 
 ### Function type (T) => R ###
 
@@ -265,14 +260,14 @@ trait Function1[-T, +R] extends AnyRef {
 }
 {% endhighlight %}
 
-In this type both contravariance and covariance is used. `T` is contravariant type parameter because it is used as `apply` input type and `R` is covariant type parameter because it is used as `apply` return type. This makes type `Function1` very flexible. Let's examine how contravariance in `Function1` helps to achieve more with less code. Below code snippet presents music instruments model.
+In this type both contravariance and covariance is used. `T` is contravariant type parameter because it is used as `apply` input type and `R` is covariant type parameter because it is used as `apply` return type. This makes type `Function1` very flexible. Let's examine how contravariance in `Function1` helps its user achieve more with less code. Below code snippet presents music instruments model.
 
 {% highlight scala %}
 trait MusicInstrument {
   val productionYear: Int
 }
-case class Guitar(val productionYear: Int) extends MusicInstrument   
-case class Piano(val productionYear: Int) extends MusicInstrument
+case class Guitar(productionYear: Int) extends MusicInstrument   
+case class Piano(productionYear: Int) extends MusicInstrument
 {% endhighlight %}
 
 Next code snippet shows a function that returns true if MusicInstrument is vintage.
@@ -281,7 +276,7 @@ Next code snippet shows a function that returns true if MusicInstrument is vinta
 val isVintage: (MusicInstrument => Boolean) = _.productionYear < 1980
 {% endhighlight %}
 
-Because of covariant subtyping, this function can be used to [filter](http://www.scala-lang.org/api/current/index.html#scala.collection.immutable.List@filter(p:A=>Boolean):Repr) both `List[Piano]` and `List[Guitar]`. If `T` from function `(T) => R` was not a contravariant type parameter then two versions of `isVintage` function would have to be implemented, one for `Piano` and one for `Guitar`. See it in action code listing below.
+Method `isVintage` can be used to [filter](http://www.scala-lang.org/api/current/index.html#scala.collection.immutable.List@filter(p:A=>Boolean):Repr) both `List[Piano]` and `List[Guitar]`. This is possible because contravariant subtyping can be applied. If `T` from function `(T) => R` was not a contravariant type parameter then two versions of `isVintage` function would have to be implemented, one for `Piano` and one for `Guitar`. See it in action in the code listing below.
 
 {% highlight scala %}
 val isVintage: (MusicInstrument => Boolean) = _.productionYear < 1980
@@ -305,11 +300,11 @@ test("should filter vintage pianos") {
 }
 {% endhighlight %}
 
-Example above only took advantage of contravariant type parameter of `(T1) => R` but covariant type parameter `R` can be just as useful.
+Example above only took advantage of contravariant subtyping but covariant subtyping can be just as useful.
 
 ### Immutable container types - Option, Collections ###
 
-Scala immutable container types such as [`Option`](http://www.scala-lang.org/api/current/#scala.Option) and [`List`](http://www.scala-lang.org/api/current/#scala.collection.immutable.List) are covariant in its type parameter. If this wasn't the case then in the code snippet below, separate `getPrices` method for each subtype of `MusicInstrument` would have to be implemented. However, with the use of covariant subtyping, one method is enough.
+Scala immutable container types such as [`Option`](http://www.scala-lang.org/api/current/#scala.Option) and [`List`](http://www.scala-lang.org/api/current/#scala.collection.immutable.List) are covariant in their type parameter. If this wasn't the case then in the code snippet below, separate `getPrices` method for each subtype of `MusicInstrument` would have to be implemented. However, with the use of covariant subtyping, one method is enough.
 
 {% highlight scala %}
 def getPrices(instruments: List[MusicInstrument]) = {
