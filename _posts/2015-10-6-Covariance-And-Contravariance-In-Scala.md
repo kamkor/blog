@@ -22,7 +22,7 @@ def install(softDrinkVM: VendingMachine[SoftDrink]): Unit = {
 }
 {% endhighlight %}
 
-The `install` method accepts a `VendingMachine` of type `SoftDrink` or subtypes of `SoftDrink` (`Cola` and `TonicWater`). This is possible because type parameter `A` is prefixed with a +. It indicates that subtyping is covariant in that parameter. Alternatively, it can be said that class `VendingMachine` is covariant in its type parameter `A`. Next code snippet shows covariant subtyping because `Cola` and `TonicWater` are subtypes of `SoftDrink`.
+The method `install` accepts a `VendingMachine` of type `SoftDrink` or subtypes of `SoftDrink` (`Cola` and `TonicWater`). This is possible because type parameter `A` is prefixed with a +. It indicates that subtyping is covariant in that parameter. Alternatively, it can be said that class `VendingMachine` is covariant in its type parameter `A`. Next code snippet shows covariant subtyping because `Cola` and `TonicWater` are subtypes of `SoftDrink`.
 
 {% highlight scala %}
 // covariant subtyping
@@ -32,7 +32,7 @@ install(new VendingMachine[TonicWater])
 install(new VendingMachine[SoftDrink])
 {% endhighlight %}
 
-However, a `VendingMachine` of type `Drink` can't be passed to the `install` method because `Drink` is a supertype of `SoftDrink`. That would be contravariant subtyping. [Contravariance is explained later](#contravariance).
+However, a `VendingMachine` of type `Drink` can't be passed to the method `install` because `Drink` is a supertype of `SoftDrink`. That would be contravariant subtyping. [Contravariance is explained later](#contravariance).
 
 {% highlight scala %}
 // Compile error ! contravariant subtyping
@@ -85,7 +85,7 @@ Scala's `Array` type parameter doesn't have covariance annotation (+ prefix). If
 
 ### <a name="legalcovariantpositions"></a> Legal positions of covariant type parameter
 
-In general, covariant type parameter can be used as immutable field type, method return type and also as method argument type if the method argument type has a lower bound. Because of those restrictions, covariance is most commonly used in producers (types that return something) and immutable types. Those rules are applied in the following implementation of `VendingMachine`.
+In general, covariant type parameter can be used as immutable field type, method return type and also as method argument type if the method argument type has a lower bound. Because of those restrictions, covariance is most commonly used in producers (types that return something) and immutable types. Those rules are applied in the following implementation of vending machine.
 
 {% highlight scala %}
 class VendingMachine[+A](val currentItem: Option[A], items: List[A]) {
@@ -111,7 +111,7 @@ class VendingMachine[+A](val currentItem: Option[A], items: List[A]) {
 }
 {% endhighlight %}
 
-The method `def addAll[B >: A](newItems: List[B]): VendingMachine[B]` has very useful characteristic, that is, lower bound makes the `addAll` very flexible as seen below.
+The method `def addAll[B >: A](newItems: List[B]): VendingMachine[B]` has very useful characteristic, that is, a lower bound makes the method `addAll` very flexible as seen below.
 
 {% highlight scala %}
 val colasVM: VendingMachine[Cola] = 
@@ -120,7 +120,7 @@ val softDrinksVM: VendingMachine[SoftDrink] =
                     colasVM.addAll(List(new TonicWater))
 {% endhighlight %}
 
-`SoftDrink` is the common supertype of both `TonicWater` and `Cola`, so the `addAll` above returns `VendingMachine` of type `SoftDrink`. 
+`SoftDrink` is the common supertype of both `TonicWater` and `Cola`, so the method `addAll` above returns instance of `VendingMachine` of type `SoftDrink`. 
 
 #### <a name="variancemutablefieldtype"></a> Covariant (and contravariant) type parameter as mutable field type
 
@@ -136,7 +136,7 @@ class NormalBullet extends Bullet
 class ExplosiveBullet extends Bullet
 {% endhighlight %}
 
-Bullets are contained in the the `AmmoMagazine` as seen in the next code listing. Notice that class `AmmoMagazine` is covariant in its type parameter `A`. It also contains mutable field `bullets` which compiles because of object private scope. Everytime the method `giveNextBullet` is invoked, bullet from the `bullets` list is removed. `AmmoMagazine` can't be refilled with bullets and there is no way of introducing this feature into this class because [that would have led to potential runtime errors](#covariantuserestrictions).
+Bullets are contained in the the ammo magazine as seen in the next code listing. Notice that class `AmmoMagazine` is covariant in its type parameter `A`. It also contains mutable field `bullets` which compiles because of object private scope. Everytime the method `giveNextBullet` is invoked, bullet from the `bullets` list is removed. `AmmoMagazine` can't be refilled with bullets and there is no way of introducing this feature into this class because [that would have led to potential runtime errors](#covariantuserestrictions).
 
 {% highlight scala %}
 final class AmmoMagazine[+A <: Bullet](
@@ -158,7 +158,7 @@ final class AmmoMagazine[+A <: Bullet](
 }
 {% endhighlight %}
 
-`AmmoMagazine` is used in the `Gun` class. `Gun` has method `reload` which thanks to covariant subtyping can be reloaded with both `AmmoMagazine[NormalBullet]` and `AmmoMagazine[ExplosiveBullet]`, and in general with `AmmoMagazine` of any subtype of `Bullet`.
+Class `AmmoMagazine` is used in the `Gun` class. `Gun` has method `reload` which thanks to the covariant subtyping can be reloaded with both `AmmoMagazine[NormalBullet]` and `AmmoMagazine[ExplosiveBullet]`, and in general with `AmmoMagazine` of any subtype of `Bullet`.
 
 {% highlight scala %}
 final class Gun(private var ammoMag: AmmoMagazine[Bullet]) {
@@ -199,7 +199,7 @@ def setGarbageCanForPlastic(gc: GarbageCan[PlasticItem]): Unit = {
 }
 {% endhighlight %}
 
-`setGarbageCanForPlastic` method can accept a `GarbageCan` of type `PlasticItem` or supertype of `PlasticItem` (`Item`). This is possible because type parameter `A` is prefixed with a -. It indicates that subtyping is contravariant in that parameter. Alternatively, it can be said that class `GarbageCan` is contravariant in its type parameter `A`. Next code snippet shows contravariant subtyping because `Item` is the supertype of `PlasticItem`.
+The method `setGarbageCanForPlastic` accepts a `GarbageCan` of type `PlasticItem` or supertype of `PlasticItem` (`Item`). This is possible because type parameter `A` is prefixed with a -. It indicates that subtyping is contravariant in that parameter. Alternatively, it can be said that class `GarbageCan` is contravariant in its type parameter `A`. Next code snippet shows contravariant subtyping because `Item` is the supertype of `PlasticItem`.
 
 {% highlight scala %}
 // contravariant subtyping
@@ -209,7 +209,7 @@ setGarbageCanForPlastic(new GarbageCan[Item])
 setGarbageCanForPlastic(new GarbageCan[PlasticItem])
 {% endhighlight %}
 
-However, a `GarbageCan` of type `PlasticBottle` can't be passed to `setGarbageCanForPlastic` method, because `PlasticBottle` is the subtype of `PlasticItem`. [That would be covariant subtyping](#covariance). 
+However, a `GarbageCan` of type `PlasticBottle` can't be passed to the method `setGarbageCanForPlastic`, because `PlasticBottle` is the subtype of `PlasticItem`. [That would be covariant subtyping](#covariance). 
 
 {% highlight scala %}
 // Compile error ! covariant subtyping
@@ -228,7 +228,7 @@ If `A` is a subtype of `B` then `GarbageCan[B]` should be a subtype of `GarbageC
 
 ### Use cases for contravariant type parameter
 
-Contravariant type parameter is usually used as method argument type, so naturally contravariance is most commonly seen in consumers (types that accept something). It can also be used as mutable field type if the field has object private scope as explained [before](#variancemutablefieldtype). Scala compiler prevents from the use of contravariant type parameter in positions that could lead to potential errors. If contravariant type parameter would have been used in illegal position such as method return type then Scala compiler would have reported an error. Example use of contravariant type parameter is applied in the following implementation of `GarbageCan`.
+Contravariant type parameter is usually used as method argument type, therefore, contravariance is most commonly associated with consumers (types that accept something). It can also be used as mutable field type if the field has object private scope as explained [before](#variancemutablefieldtype). Scala compiler prevents from the use of contravariant type parameter in positions that could lead to potential errors. If contravariant type parameter would have been used in illegal position such as method return type then Scala compiler would have reported an error. Example use of contravariant type parameter is applied in the following implementation of garbage can.
 
 {% highlight scala %}
 class GarbageCan[-A] {
@@ -245,9 +245,9 @@ class GarbageCan[-A] {
 }
 {% endhighlight %}
 
-## Real world examples ##
+## Real world examples of covariance and contravariance
 
-Covariance and contravariance is very common in functional style programming. Many APIs used by developers on a daily basis use variance annotations to make their types more flexible by allowing covariant and contravariant subtyping.
+Covariance and contravariance is very common in functional style programming. Many libraries used by developers on a daily basis use variance annotations to make library types more flexible by allowing the use of covariant and contravariant subtyping.
 
 ### Function type (T) => R ###
 
@@ -260,7 +260,7 @@ trait Function1[-T, +R] extends AnyRef {
 }
 {% endhighlight %}
 
-In this type both contravariance and covariance is used. `T` is contravariant type parameter because it is used as `apply` input type and `R` is covariant type parameter because it is used as `apply` return type. This makes type `Function1` very flexible. Let's examine how contravariance in `Function1` helps its user achieve more with less code. Below code snippet presents music instruments model.
+In this type both contravariance and covariance is used. `T` is contravariant type parameter because it is used as `apply` argument type and `R` is covariant type parameter because it is used as `apply` return type. This makes type `Function1` very flexible. Let's examine how contravariance in `Function1` helps its users achieve more with less code. Below code snippet presents music instruments model.
 
 {% highlight scala %}
 trait MusicInstrument {
@@ -270,7 +270,7 @@ case class Guitar(productionYear: Int) extends MusicInstrument
 case class Piano(productionYear: Int) extends MusicInstrument
 {% endhighlight %}
 
-Next code snippet shows a function that returns true if MusicInstrument is vintage.
+Next code snippet shows a function that returns true if `MusicInstrument` is vintage.
 
 {% highlight scala %}
 val isVintage: (MusicInstrument => Boolean) = _.productionYear < 1980
@@ -324,7 +324,7 @@ Asynchronous and event-based programs have gained a lot of popularity in the rec
 >
 >It extends the observer pattern to support sequences of data and/or events and adds operators that allow you to compose sequences together declaratively while abstracting away concerns about things like low-level threading, synchronization, thread-safety, concurrent data structures, and non-blocking I/O.
 
-Reactive extensions have been implemented in many languages, also in Scala in project [RxScala](http://reactivex.io/rxscala/). What does it have to do with this post? This library makes heavy use of covariance and contravariance. Take look at [`Observable`](http://reactivex.io/rxscala/scaladoc/index.html#rx.lang.scala.Observable) and [`Observer`](http://reactivex.io/rxscala/scaladoc/index.html#rx.lang.scala.Observer) which are two most important types from this library. Those types are examined next and a new advanced concept called flipped classification is introduced.
+Reactive extensions have been implemented in many languages, also in Scala in project [RxScala](http://reactivex.io/rxscala/). What does it have to do with this post? This library makes heavy use of covariance and contravariance. Take look at [`Observable`](http://reactivex.io/rxscala/scaladoc/index.html#rx.lang.scala.Observable) and [`Observer`](http://reactivex.io/rxscala/scaladoc/index.html#rx.lang.scala.Observer) which I think are two most important types of this library. Those types are examined next and a new advanced concept called flipped classification is introduced.
 
 #### Flipped classification
 
@@ -337,7 +337,7 @@ trait Observable[+T] {
 }
 {% endhighlight %}
 
-`Observable` is a type that produces values of type `T`, so it is covariant in type parameter `T`. However, if you look at method `subscribe` you might think that it uses type `T` in illegal position. After all, it was explained before that if type parameter is declared as covariant then it can be used as method argument type if it has a lower bound (`[B >: T]`). So the question is, why `subscribe` above compiles? The answer is flipped classification. Method `subscribe` accepts parametrized type `Observer` as an argument. The trick is that `Observer` is contravariant in its type parameter `T`.
+`Observable` is a type that produces values of type `T` and is covariant in that type parameter. However, if you look at method `subscribe` you might think that it uses type `T` in illegal position. After all, it was explained before that if type parameter is declared as covariant then it can be used as method argument type if it has a lower bound (`[B >: T]`). So the question is, why `subscribe` above compiles? The answer is flipped classification. Method `subscribe` accepts parametrized type `Observer` as an argument. The trick is that `Observer` is contravariant in its type parameter `T`.
 
 {% highlight scala %}
 // simplified version of Observer
@@ -347,13 +347,13 @@ trait Observer[-T] {
 }
 {% endhighlight %}
 
-Flipped classification also applies to `map` method of `Observable`. Method `map` accepts as an argument function `(T => R)`, that is `Function1[-T, +R]`. `Function1` is contravariant in type parameter `T` so flipped classification is also applied by the Scala compiler. 
+Flipped classification also applies to `map` method of `Observable`. Method `map` accepts function `(T => R)` as an argument, that is `Function1[-T, +R]`. `Function1` is contravariant in type parameter `T` so flipped classification is also applied by the Scala compiler. 
 
 Flipped classification is explained in more detail in _The fast track_ section of Type Parameterization chapter in [Programming In Scala](http://www.artima.com/pins1ed/type-parameterization.html). 
 
 ## Use-site and declaration-site variance
 
-So far this post has described declaration-site variance because variance was defined during the declaration of the type with a + prefix for covariant type parameter and a - prefix for contravariant type parameter.
+Only declaration-site variance has been described so far. It is defined during the declaration of the type with a + prefix for covariant type parameter and a - prefix for contravariant type parameter.
 
 Another kind of variance is use-site variance which is defined by the user of the type. It is best explained with an example. `VendingMachine` below is invariant in its type parameter `A`. 
 
@@ -361,7 +361,7 @@ Another kind of variance is use-site variance which is defined by the user of th
 class VendingMachine[A]
 {% endhighlight %}
 
-If the user of the `VendingMachine` would like to use covariant subtyping then he would have to define covariance himself using upper bound.
+If the user of the type `VendingMachine` would like to use covariant subtyping then he would have to define covariance himself using upper bound.
 
 {% highlight scala %}
 def install(softDrinkVM: VendingMachine[_ <: SoftDrink]): Unit = {
@@ -371,50 +371,49 @@ def install(softDrinkVM: VendingMachine[_ <: SoftDrink]): Unit = {
 install(new VendingMachine[Cola])
 {% endhighlight %}
 
-If the method `install` was defined as `install(softDrinkVM: VendingMachine[SoftDrink]): Unit` then code above wouldn't compile because it would require the types to match exactly. That is, `install` method would have accepted only values of type `VendingMachine[SoftDrink]`. 
+If the method `install` was defined as `install(softDrinkVM: VendingMachine[SoftDrink]): Unit` then code above wouldn't compile because it would have required the types to match exactly. That is, the method `install` would have accepted only values of type `VendingMachine[SoftDrink]`. 
 
 ### Use-site variance readability and usage issues
 
-Personally I think that in contrast to declaration-site variance, use-site variance makes code harder to read. Worst of all, use-site variance has to be often exposed in public API. Consider Java which only supports use-site variance for generics. Java 8 introduced lambdas and added a lot of new functional style types to its standard library. Those types often use covariance and contravariance to give their users more flexibility. The price of this flexibility is API that can be unpleasant to read. Listing below shows few JavaDoc example methods of new types added to Java 8.
+Personally I think that in contrast to declaration-site variance, use-site variance makes code harder to read. Worst of all, use-site variance has to be often exposed in public API. Consider Java which only supports use-site variance for generics. Java 8 introduced lambdas and added a lot of new functional style types to its standard library. Those types often use covariance and contravariance to give their users more flexibility. The price of this flexibility is API that can be unpleasant to read. Listing below shows few example methods of new types added in Java 8. Return types are ommited.
 
 {% highlight java %}
 // from CompletableFuture
 thenCombine(
-	CompletionStage<? extends U> other,
-	BiFunction<? super T,? super U,? extends V> fn)
-		
+  CompletionStage<? extends U> other,
+  BiFunction<? super T,? super U,? extends V> fn)
+    
 // from Collectors
 groupingBy(
-	Function<? super T,? extends K> classifier, 
-	Collector<? super T,A,D> downstream)
-
+  Function<? super T,? extends K> classifier, 
+  Collector<? super T,A,D> downstream)
 toMap(
-	Function<? super T,? extends K> keyMapper, 
-	Function<? super T,? extends U> valueMapper)
-	
+  Function<? super T,? extends K> keyMapper, 
+  Function<? super T,? extends U> valueMapper)
+  
 // from Function
 compose(Function<? super V,? extends T> before)
 {% endhighlight %}
 
-In functional style programming it is very usual to have higher order functions, that is, functions that take function as an argument. In Java 8, everytime a higher order function is defined, the function taken as an argument should have use-site variance annotations: `Function<? super T,? extends K>`. This is really cumbersome but as Java programmers we have to live with it. Things would be much easier and more pleasant if Java had declaration-site variance.
+In functional style programming it is very usual to have higher order functions, that is, functions that take function as an argument. In Java 8, everytime a higher order function is defined, the function taken as an argument should have use-site variance annotations: `Function<? super T,? extends K>`. This is really cumbersome but as Java programmers we have to live with it. Things would be much easier and more pleasant if Java featured declaration-site variance.
 
 ### Use-site variance may reduce functionality of the type
 
-Another more relevant problem with use-site variance exists. Take a look at class `Box` defined in the next code listing. `Box` uses type parameter `A` as both output and input, so it can't be declared by the creator of the class as neither covariant nor contravariant. 
+I believe that there is even a worse problem with use-site variance. Take a look at class `Box` defined in the next code listing. `Box` uses type parameter `A` as both output and input, so it can't be declared by the creator of the class as neither covariant nor contravariant. 
 
 {% highlight scala %}
 class Box[A]() {
 
-  private var _thing: A = _
+  private var thing: A = _
   
-  def retrieve: A = _thing
+  def retrieve: A = thing
   
-  def put(thing: A) = this._thing = thing
+  def put(thing: A) = this.thing = thing
   
 }
 {% endhighlight %}
 
-Code below creates `Box` for `SoftDrink`. It puts `Cola` into it and then retrieves it.
+Code below creates instances of `Box` of type `SoftDrink`. It puts `Cola` into it and then retrieves it.
 
 {% highlight scala %}
 val softDrinkBox: Box[SoftDrink] = new Box()
@@ -422,7 +421,7 @@ softDrinkBox.put(new Cola)
 val softDrink: SoftDrink = box.retrieve
 {% endhighlight %}
 
-If the user would like to use covariant subtyping with class `Box` then he would have to add variance annotations himself. However, this would have caused method `put` to be no longer usable because compiler would not be able to figure out the correct type of the argument of `put` method. 
+If the user would have liked to use covariant subtyping with class `Box` then he would have to add variance annotations himself. However, this would have made method `put` no longer usable because it wouldn't be possible for the compiler to figure out the correct type of the argument of the method `put`.
 
 {% highlight scala %}
 val softDrinkBox: Box[_ <: SoftDrink] = new Box()
@@ -431,38 +430,40 @@ val softDrinkBox: Box[_ <: SoftDrink] = new Box()
 val softDrink: SoftDrink = softDrinkBox.retrieve
 {% endhighlight %}
 
-On the other hand, if the user would like to use contravariant subtyping then he would have made `retrieve` method mostly unusable. That is, any type safety would be gone. User could only retrieve 
-
-The compiler wouldn't be able to figure out the correct return type of the retrieve method.
+On the other hand, if the user would have liked to use contravariant subtyping using use-site variance then he would have made the method `retrieve` mostly unusable. That is, any type safety would be gone. User could only retrieve something like `Any`.
 
 {% highlight scala %}
 val softDrinkBox: Box[_ >: SoftDrink] = new Box()
 softDrinkBox.put(new Cola)
-// type mismatch; found : _$2 required: SoftDrink    
-// val softDrink: SoftDrink = softDrinkBox.retrieve
+// can't retrieve and assign to type SoftDrink 
+val softDrinkMaybe: Any = softDrinkBox.retrieve
 {% endhighlight %}
 
-Java programmers sometimes have to make a collection like `java.util.List` covariant or contravariant in its type parameter. The same issues as with `Box` class apply there. 
+Java programmers sometimes have to make a collection like `java.util.List` covariant or contravariant in its type parameter. The same issues as with `Box` class apply in this case.
 
 {% highlight java %}
 // you can't put elements into numbersCov but only retrieve them
-final java.util.List<? extends Number> numbersCov;
+final java.util.List<? extends Number> numbersCov = getCovList();
+// only null can be put in
+numbersCov.add(null);
+final Number n = numbersCov.get(0);
 
 // you can put elements into numbersContr but can't retrieve them
-final java.util.List<? super Number> numbersContr;
+final java.util.List<? super Number> numbersContr = getContrList();
+numbersContr.add(5);
+// can be only assigned to Object
+final Object o = numbersContr.get(0);
 {% endhighlight %}
 
-The fact that use-site variance can make some functionality of the type completely unusable is very bad. It makes code unintuitive. With declaration-site variance, Scala compiler makes sure that variance annotations are only used when it makes sense, that is, only if they add more flexibility for the user. Finally, declaration-site variance makes APIs and code much cleaner than use-site variance.
+The fact that use-site variance can make some functionality of the type completely unusable can suprise a lot of users (programmers). With declaration-site variance, Scala compiler makes sure that variance annotations are only used when it makes sense, that is, only if they add more flexibility for the user. Finally, declaration-site variance makes APIs and code much cleaner than use-site variance.
 
 ## Summary ##
 
-Covariance and contravariance are something that many take for granted. It is especially relevant now because of the functional style programming that has gained a lot of popularity in the recent years. If covariance and contravariance would be suddenly turned off then a lot of code wouldn't compile any more.
+It is important that both library developers and users understand concepts of covariance and contravariance. Correct use of variance makes libraries more flexible and lets their users achieve more functionality with less code. 
 
-It is important that both library developers and users understand concepts of covariance and contravariance. Covariance and contravariance makes libraries more flexible and lets their users achieve more functionality with less code. 
+From the perspective of library developer it is easiest to remember that covariant type parameter should be most often used as output type (in producers) and contravariant type parameter as input type (in consumers). If type parameter has to be used as both output and input type then it should be invariant. However, remember that there are exceptions, for example, covariant type parameter can be used as method input type if lower bound is used.
 
-From the perspective of library developer it is easiest to remember that covariant type parameter should be most often used as output type and contravariant type parameter as input type. If you want to use type parameter as both input and output type, then it should be invariant.
-
-From the perspective of library user it is best to remember rules below. First covariant subtyping.
+From the perspective of library user it is best to remember rules below. First, covariant subtyping.
 
 {% highlight scala %}
 // Covariant subtyping (Vending machine metaphore)
@@ -470,15 +471,15 @@ From the perspective of library user it is best to remember rules below. First c
 VendingMachine[A] <: VendingMachine[B]
 {% endhighlight %}
 
-And next contravariant subtyping which is the opposite of covariant subtyping.
+And next, contravariant subtyping which is the opposite of covariant subtyping.
 
 {% highlight scala %}
 // Contravariant subtyping (Garbage can metaphore)
-               A  <:                B
-VendingMachine[B] <: VendingMachine[A]
+           A  <:            B
+GarbageCan[B] <: GarbageCan[A]
 {% endhighlight %}
 
-If you forget rules above, try to remind yourself of vending machine and garbage can metaphors. Last of all, all code examples (and more) are available at [github](https://github.com/kamkor/covariance-and-contravariance-examples).
+If you forget rules above, try to remind yourself of vending machine and garbage can metaphors. Last of all, all code examples from this post and more are available at [github](https://github.com/kamkor/covariance-and-contravariance-examples).
 
 ## References ##
 
