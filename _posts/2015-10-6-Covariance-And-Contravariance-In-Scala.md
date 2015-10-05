@@ -459,11 +459,11 @@ The fact that use-site variance can make some functionality of the type complete
 
 ## Summary ##
 
-It is important that both library developers and users understand concepts of covariance and contravariance. Correct use of variance makes libraries more flexible and lets their users achieve more functionality with less code. 
+It is important that both developers of types and their users understand covariance and contravariance. Correct use of variance makes types more flexible and lets their users achieve more functionality with less code. 
 
-From the perspective of library developer it is easiest to remember that covariant type parameter should be most often used as output type (in producers) and contravariant type parameter as input type (in consumers). If type parameter has to be used as both output and input type then it should be invariant. However, remember that there are exceptions, for example, covariant type parameter can be used as method input type if lower bound is used.
+From the perspective of type developer it is easiest to remember that covariant type parameter should be most often used as output type (in producers) and contravariant type parameter as input type (in consumers). If type parameter has to be used as both output and input type then it should be invariant. However, remember that there are exceptions, for example, covariant type parameter can be used as method argument type if lower bound is used.
 
-From the perspective of library user it is best to remember rules below. First, covariant subtyping.
+From the perspective of type user it is best to remember rules below. First, covariant subtyping.
 
 {% highlight scala %}
 // Covariant subtyping (Vending machine metaphore)
