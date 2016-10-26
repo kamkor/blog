@@ -41,22 +41,12 @@ val json = toJson(productDetails)
 						<ul class="fragment">
 							<div class="red">
 								- Not efficient (could call clients in parallel)<br>
-								- Latency as a hidden effect<br>
+								- Client calls are blocking<br>
+								- Latency as a hidden effect<br>								
 							</div>
 							<span class="green">+ Simple</span>
 						</ul>
 					</section>					
-					<section>
-						<h3>Hidden latency effect</h3>
-						<pre><code class="scala" data-trim data-noescape>
-trait ProductClient {						
-  def getProduct(productId: Long): Product
-}
-
-// blocked until product is retrieved from http service
-val product: Product = productClient.getProduct(productId)
-						</code></pre>
-					</section>
 					<section>
 						<h2>Latency comparision</h2><br/>
 						<table>
@@ -94,7 +84,7 @@ val product: Product = productClient.getProduct(productId)
 								</tr>
 								<tr>
 									<td>Network round trip between Europe and USA</td>
-									<td><span class="fragment highlight-blue">3 years</span></td>
+									<td>3 years</td>
 								</tr>
 							</tbody>
 						</table>
@@ -109,13 +99,13 @@ trait ProductClient {
 // Future[Product] is returned immediately
 val productF: Future[Product] = productClient.getProduct(productId)
 						</code></pre>
-						<p class="fragment"><strong class="blue">Future</strong> is like a box that at some point of future might contain a value or error inside.</p>
+						<p><strong class="blue">Future</strong> is like a box that at some point of future might contain a value or error inside.</p>
 					</section>				
 				</section>
 				<section>
 					<section>
 						<h2>Introduction to <span class="blue">scala.concurrent.Future</span></h2>
-						<p class="fragment">Please note that other languages contain similar type. CompletableFuture in Java, Promise in JavaScript etc.</p>						
+						<p>Other languages contain similar type. CompletableFuture in Java, Promise in JavaScript etc.</p>						
 					</section>
 					<section>
 						<h3>How to create a Future</h3>
@@ -275,8 +265,8 @@ val jsonF: Future[Json] =
 					</section>
 					<section>
 						<h3>What adds latency in microservices?</h3>
-						<p>Mostly IO intensive tasks (e.g. http calls, database calls)</p>
-						<p>Less often CPU intensive tasks (e.g. performing encryption)</p>
+						<p>Mostly IO intensive tasks (e.g. http calls, database calls).<br> <span class="fragment">Use non blocking io to avoid blocking threads.</span></p>
+						<p>Less often CPU intensive tasks (e.g. performing encryption).<br> <span class="fragment">Use separate threadpools for such tasks.</span></p>
 					</section>
 					<section>
 						<h3>Asynchronous microservices</h3>
