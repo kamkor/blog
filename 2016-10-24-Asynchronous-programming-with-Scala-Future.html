@@ -23,7 +23,7 @@ permalink: /slides/Asynchronous-programming-with-Scala-Future/
 				</section>
 				<section>
 					<section>
-						<h2>Synchronous, Asynchronous.. ?</h2>
+						<h3>Synchronous, Asynchronous.. ?</h3>
 					</section>
 					<section data-background="assets/shocked_egg_dimmed.jpg">	
 						<h3>Synchronous processing</h3>
@@ -75,7 +75,7 @@ eggF onComplete {
 						<pre><code class="scala" data-trim data-noescape>
 val eggF: Future[Egg] = 
   Future {
-    plumplum()
+    chickenMagic()
   }
 </code></pre>
 <p>Expression inside the Future block is immediately scheduled for execution on some thread.</p>
@@ -143,8 +143,8 @@ val breakfast: (FriedEgg, Tea) = (friedEgg, tea)
 <span class="fragment" data-fragment-index="1">val breakfastF: Future[(FriedEgg, Tea)] =</span>
 <span class="fragment" data-fragment-index="2">  eggF flatMap { egg =></span>
     <span class="fragment" data-fragment-index="3">val friedEggF: Future[FriedEgg] = fry(egg)</span>
-    <span class="fragment" data-fragment-index="4">val teaF: Future[Tea] = brew(teabag)</span>
-    <span class="fragment" data-fragment-index="5">friedEggF.zip(teaF) // returns Future[(FriedEgg, Tea)]</span>
+    <span class="fragment" data-fragment-index="3">val teaF: Future[Tea] = brew(teabag)</span>
+    <span class="fragment" data-fragment-index="4">friedEggF.zip(teaF) // returns Future[(FriedEgg, Tea)]</span>
 <span class="fragment" data-fragment-index="2">  }</span>
 </code></pre>
 					</section>
@@ -159,16 +159,22 @@ val softFriedEggF: Future[FriedEgg] =
 </code></pre>
 					</section>						
 					<section>
-						<h3>Last but not least..</h3>
-						<p>With Futures, you are writing concurrent programs</p>
+						<h3>Futures & concurrency</h3>
 						<pre><code class="scala" data-trim data-noescape>
 // ExecutionContext decides how to schedule and on what thread
 val executionContext = scala.concurrent.ExecutionContext.global
 
-<span class="fragment">val friedEggF: Future[FriedEgg] =
-  chicken
-    .layEgg()    
-    .flatMap(fry)(executionContext)</span>
+<div class="fragment">val eggF: Future[Egg] = 
+  Future {
+    chickenMagic()
+  }(executionContext)</div>
+<span class="fragment">val crackedEggF = eggF.map(crack)(executionContext)</span>
+<div class="fragment">
+crackedEggF onComplete {
+  case Success(crackedEgg) => ???
+  case Failure(exception)  => ???
+}(executionContext)
+</div>
 </code></pre>						
 					</section>
 					<section>
@@ -203,14 +209,15 @@ case class Foobar(foo: Int, bar: Int, theta: Int)
 					</section>	
 					<section>
 						<p>They might communicate asynchronously via messages..</p>
-						<p>..or maybe synchronously via RESTful communication.</p>
-						<p class="green">Let's consider second scenario</p>
+						<p>..or maybe synchronously via RESTful communication.</p>						
 					</section>					
 					<section>
 						<h3>Consuming microservices</h3>
-						Synchronous
+						Synchronous processing
 						<pre><code class="scala" data-trim data-noescape>
+// network call, so just waiting for product service!
 val product: Product = productClient.getProduct(productId)
+// network call, so just waiting for price service!
 val price: Price = priceClient.getPrice(productId, curr)
 
 val details: (Product, Price) = (product, price)
@@ -226,9 +233,7 @@ val priceF: Future[Price] = priceClient.getPrice(productId, curr)</div>
 						<h3>Consuming microservices</h3>
 <p>Concurrently with Future</p>
 <pre><code class="scala" data-trim data-noescape>
-// network call, so just waiting for product service!
 val productF: Future[Product] = productClient.getProduct(productId)
-// network call, so just waiting for price service!
 val priceF: Future[Price] = priceClient.getPrice(productId, curr)
 
 val detailsF: Future[(Product, Price)] = productF.zip(priceF)
@@ -256,12 +261,10 @@ val detailsF: Future[(Product, Price)] = productF.zip(priceF)
 						<h3>CPU intensive tasks</h3>
 						<p>Use separate thread pools</p>
 						<pre><code class="scala" data-trim data-noescape>
-val executor = Executors.newWorkStealingPool()
-// ExecutionContext decides how to schedule and on what thread
-val executionContext = ExecutionContext.fromExecutor(executor)
-
-<div class="fragment">def encrypt(plain: Array[Byte]): Future[Array[Byte]] = 
-  Future { longRunningEncryption(plain) }(executionContext)</div>
+def encrypt(plain: Array[Byte]): Future[Array[Byte]] =
+ Future { 
+   longRunningEncryption(plain) 
+ }(executionContext)
 </code></pre>						
 					</section>	
 					<section>
@@ -277,15 +280,13 @@ val executionContext = ExecutionContext.fromExecutor(executor)
 					<section>						
 						<p>For example, Finatra expects you to return the Future</p>
 						<pre><code class="scala" data-trim data-noescape>
-class WishListsController(
-  wishListsRepository: WishListsRepository
-) extends Controller {
+class WishListsController(repo: WishListsRepository) 
+  extends Controller {
 
-  <div class="fragment">get("/wishlists/:id") { request: Request =>
-    // returns Future[WishList]
-    wishListsRepository.get(request.getParam("id"))
+<div class="fragment">  get("/wishlists/:id") { r: Request =>
+    val wishListF: Future[WishList] = repo.get(r.getParam("id"))
+    wishListF
   }</div>
-
 }
 </code></pre>						
 					</section>									
@@ -299,7 +300,7 @@ class WishListsController(
 						</ul>
 					</section>
 					<section>
-						<h2>Summary</h2>						
+						<h1>Summary</h1>
 						<ul>
 							<li>Express latency side effect in your code</li>
 							<li>Functional + async programming = easy concurrency</li>
@@ -307,6 +308,6 @@ class WishListsController(
 						</ul>						
 					</section>
 					<section>
-						<h2>Thank you, questions?</h2>					
+						<h1>Thank you, questions?</h1>
 					</section>			
 				</section>
